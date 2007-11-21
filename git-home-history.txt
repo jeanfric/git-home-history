@@ -337,8 +337,8 @@ $ git-clone http://jean-francois.richard.name/ghh.git
 
 For convenience, the script itself and its manpage in AsciiDoc format
 are available at
-http://jean-francois.richard.name/git-commit-history[] and
-http://jean-francois.richard.name/git-commit-history.txt[].
+http://jean-francois.richard.name/git-home-history[] and
+http://jean-francois.richard.name/git-home-history.txt[].
 
 These files might not be as up-to-date as the files in the Git
 repository.
