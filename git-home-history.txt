@@ -12,7 +12,7 @@ your home directory
 SYNOPSIS
 --------
 [verse]
-'git-home-history' init   
+'git-home-history' init
 'git-home-history' commit
 'git-home-history' show <file> as of <timespec>
 'git-home-history' archive-to <file>
@@ -41,7 +41,7 @@ init::
        Set up a git repository ('.git') and a '.gitignore' file in
        your home directory.
 
-commit:: 
+commit::
 
        Save your home history to your repository. You can run this
        from wherever you are in the filesystem
@@ -184,7 +184,7 @@ $ mv po-tah-to po-tey-to
 # Commit the current state!
 $ ~/git-home-history commit
 
-# Now you can examine the changes by doing 
+# Now you can examine the changes by doing
 $ cd ~
 $ git-log
 # -or, visually-
@@ -218,8 +218,8 @@ $ nano .git/remotes/remotemachine.net
 URL: ssh://myname@remotemachine.net/~myname/bak-from-machineA
 Push: master:master
 
- 
-# Now, everytime you whish to copy your history to the 
+
+# Now, everytime you whish to copy your history to the
 # 'remotemachine.net' remote repository, simply run
 $ cd ~
 $ git-push remotemachine.net
@@ -310,7 +310,7 @@ $ crontab -e
 # You can add this line:
 * */2 * * *  /path/to/git-home-history commit >/dev/null 2>&1
 
-# It tells the scheduled commands daemon to run 
+# It tells the scheduled commands daemon to run
 # 'git-home-history commit' every 2 hours.
 # You can make sure it is working by doing (in 2 hours +)
 $ cd ~
