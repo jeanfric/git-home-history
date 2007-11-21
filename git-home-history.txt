@@ -1,0 +1,343 @@
+git-home-history(1)
+===================
+
+NAME
+----
+
+git-home-history - a tool to track the history and make backups of
+your home directory
+
+SYNOPSIS
+--------
+[verse]
+'git-home-history' init   
+'git-home-history' commit
+'git-home-history' show <file> as of <timespec>
+'git-home-history' archive-to <file>
+'git-home-history' extract-archive-to <dir>
+'git-home-history' ls-ignored-files
+'git-home-history' rm-all
+'git-home-history' rm-older-than <timespec>
+
+DESCRIPTION
+-----------
+
+'git-home-history' is a script that simplifies keeping track of
+changes you make in your home directory.  It is based on the excellent
+Git toolkit, described at http://git.or.cz/[].
+
+You should be familiar with Git to use 'git-home-history'.  This
+manual explains how you can keep track of your home directory.  It
+also shows how you can back up the the entire history of your home
+directory to other systems/devices for more safety.
+
+OPTIONS
+-------
+
+init::
+
+       Set up a git repository ('.git') and a '.gitignore' file in
+       your home directory.
+
+commit:: 
+
+       Save your home history to your repository. You can run this
+       from wherever you are in the filesystem
+
+show <file> as of <timespec>::
+
+       Outputs the content of <file>, as stored as of <timespec>.
++
+--
+Example:
+------------
+git-home-history show "myfile.txt" as of 2 days ago
+git-home-history show "myfile.txt" as of 1979-02-26 18:30:00
+------------
+--
+
+archive-to <file>::
+
+       Outputs a GPG-ed TAR (with suggested extension: .git.tar.gpg)
+       to <file>. Note that <file> can be '-' to send to stdout. The
+       archive is encrypted symmetrically with a password.
++
+--
+Example:
+------------
+git-home-history archive-to /tmp/home-at-machineX.git.tar.gpg
+git-home-history archive-to - \
+    | ssh me@remote 'cat > home-machineA.git.tar.gpg'
+------------
+--
+
+extract-archive-to <dir>::
+
+       Reads a GPG-ed TAR file from stdin and extract it to <dir>
+       directory.
++
+--
+Example:
+------------
+$ cat home-on-machineA.git.tar.gpg \
+    | git-home-history extract-archive-to home-on-machineA.git
+------------
+--
+
+ls-ignored-files::
+
+       Shows files that are ignored. To change what should be
+       untracked from now on, edit '\~/.gitignore'.  If a file is
+       newly ignored, you need to commit before seing it as ignored.
+
+rm-all::
+
+       Reinitialize (read *delete all*) '\~/.git/\*' and
+       '\~/.gitignore'.
+
+rm-older-than <timespec>::
+
+       Removes all commits older than <timespec>.  It is a risky
+       operation for now.  Not recommended.
++
+--
+Example:
+------------
+$ git-home-history rm-older-than 2 days ago
+$ git-home-history rm-older-than 1979-02-26 18:30:00
+------------
+--
+
+Basic usage/tutorial
+--------------------
+
+'git-home-history' is simple to use.  You must first setup your
+history store with `git-home-history init`, then tell it what to
+ignore from your home directory.  Once this is done, you simply have
+to run `git-home-history commit` whenever you want to store the
+current state of your home directory in your Git history store.
+
+First, get the script:
+
+------------
+# Go back to home
+$ cd ~
+
+# Download the script
+$ wget http://jean-francois.richard.name/git-home-history
+# Have a look, to make sure everything is OK!
+$ less git-home-history
+#!/bin/bash
+# [...]
+
+# Make it executable
+$ chmod +x git-home-history
+------------
+
+Initializing and doing a first commit is done like this:
+
+------------
+# Go back to home
+$ cd ~
+
+# Ok, let's use it!
+# First, create the needed files (in fact, '.git/' and '.gitignore')
+$ ./git-home-history init
+
+# The script wants us to edit the .gitignore
+# This is an important step to tell what will *not* be
+# tracked by git-home-history
+$ nano .gitignore
+
+# Check what will be ignored
+$ ./git-home-history ls-ignored-files
+
+# Then we make the first commit, which can be a long operation
+# depending on the size of your home directory
+$ ./git-home-history commit
+# ...very long...
+# ...zzz...
+# Do not worry, the next commits will be blazingly fast!
+------------
+
+Subsequently, saving is very easy.  Simply do `git-home-history
+commit` wherever you are in the filesystem.
+
+Example:
+
+------------
+# (In this example we assume the script 'git-home-history' is stored
+# directly under your home directory)
+
+$ cd mywork/blabla/
+$ touch testing-testing-mic-check
+
+# Commit the current state!
+$ ~/git-home-history commit
+
+$ cd ~/my-other-thing-to-do/
+$ touch po-tah-to
+$ mv po-tah-to po-tey-to
+
+# Commit the current state!
+$ ~/git-home-history commit
+
+# Now you can examine the changes by doing 
+$ cd ~
+$ git-log
+# -or, visually-
+$ gitk
+------------
+
+Remote backups to secure machines
+---------------------------------
+
+You can use the various Git tools to efficiently clone your history
+repository to remote machines *you know and trust* (if not, use the
+`archive-to` command to send encrypted tarballs).
+
+For example:
+
+------------
+# ... do your first commit ... (see section above)
+
+# Go back to home
+$ cd ~
+
+# Login to a remote machine and prepare a backup directory
+$ ssh myname@remotemachine.net \
+    'GIT_DIR=bak-from-machineA.git git-init'
+
+# The following sets up a Git 'remote' shortcut
+# See 'man git-push' for more details on remotes and URL formats
+$ nano .git/remotes/remotemachine.net
+
+# Add this to your 'remotemachine.net' file :
+URL: ssh://myname@remotemachine.net/~myname/bak-from-machineA
+Push: master:master
+
+ 
+# Now, everytime you whish to copy your history to the 
+# 'remotemachine.net' remote repository, simply run
+$ cd ~
+$ git-push remotemachine.net
+------------
+
+Whenever you `git-push`, all the previous commits and associated files
+will be copied to the remote place.  Remember to run `git-home-history
+commit` before pushing to a remote backup repository if you want the
+current state of your home directory to be sent as well.
+
+You can set up multiple remotes and use different transfer schemes
+(HTTP, HTTPS, rsync, etc.) depending on your particular needs.  See
+the `git-push` man page for more information.
+
+
+Storing history on locally mounted remote directory
+---------------------------------------------------
+
+Since Git stores its data in your home directory, under '.git', you
+can simply mount a remote filesystem as '.git' (or symlink to a remote
+mount) before initializing the histories.  This will effectively store
+the data on the remote filesystem/device (make sure you know and trust
+the remote host since it will store all your personal data).
+
+This technique is useful if you do not have sufficient space to
+store your history locally.
+
+Example:
+
+------------
+# ... *do not* initialize and do a first commit *yet* ...
+#
+# note: see 'Start anew' below if you want to restart...
+
+# Go back to home
+$ cd ~
+
+# Plug in your USB device... appears under /media/disk
+# ...or have some network filesystem mounted to /media/disk
+$ mkdir /media/disk/bak-machineA.git
+$ ln -s /media/disk/bak-machineA.git .git
+
+# ... now, do your initialization and first commit (see above)
+------------
+
+
+
+
+Cleaning up the past
+--------------------
+
+Important: this feature is risky to use, for now.  We need a
+Git guru to double-check... (are you one?  care to help?)
+
+You can remove commits that were made before a certain date by using
+such commands:
+
+------------
+$ ./git-home-history rm-older-than yesterday
+$ ./git-home-history rm-older-than 1 month ago
+$ ./git-home-history rm-older-than 1 month 2 weeks 3 days 1 hour 1 second ago
+$ ./git-home-history rm-older-than 1979-02-26 18:30:00
+------------
+
+This will rewrite the history of commits and may change objects in
+your repository.  If you were syncing with git tools (such as
+`git-push`), you will probably have to remove the remote repository
+and re initialize it.  Really, use at your own risks (for now).
+
+
+Start anew
+----------
+
+You can delete all your previous commits by issuing:
+
+------------
+$ ./git-home-history rm-all
+------------
+
+
+Automatic scheduled commiting
+-----------------------------
+
+On most UNIX systems, you can simply run, as a user:
+
+------------
+$ crontab -e
+# You can add this line:
+* */2 * * *  /path/to/git-home-history commit >/dev/null 2>&1
+
+# It tells the scheduled commands daemon to run 
+# 'git-home-history commit' every 2 hours.
+# You can make sure it is working by doing (in 2 hours +)
+$ cd ~
+$ git-log
+------------
+
+How to preserve permissions
+---------------------------
+
+There is a hook that, at commit, writes all permissions to a special
+file, and, at checkout, restores them.  The script is
+`contrib/hooks/setgitperms.perl` in the Git source code.  Read the
+script itself to know more.  We do not (yet) support it or know much
+about it.
+
+Downloads and updates
+---------------------
+
+You can download this script at
+http://jean-francois.richard.name/git-home-history[].
+
+The manpage you are reading is at
+http://jean-francois.richard.name/git-home-history.txt[], in AsciiDoc
+format.
+
+Someday we will probably have a nice package.  :)
+
+AUTHORS
+-------
+
+Feel free to send any suggestions/patches to Jean-Francois Richard
+<mailto:jean-francois@richard.name[]>
