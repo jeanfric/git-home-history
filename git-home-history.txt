@@ -343,6 +343,14 @@ http://jean-francois.richard.name/git-home-history.txt[].
 These files might not be as up-to-date as the files in the Git
 repository.
 
+Discussion
+----------
+
+You can visit the group discussion page at
+http://groups.google.com/group/git-home-history[], and subscribe to
+the mailing-list.
+
+
 AUTHORS
 -------
 
