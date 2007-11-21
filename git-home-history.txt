@@ -1,5 +1,7 @@
 git-home-history(1)
 ===================
+Jean-Francois Richard <jean-francois@richard.name>
+:Author Initials: JFR
 
 NAME
 ----
@@ -327,14 +329,19 @@ about it.
 Downloads and updates
 ---------------------
 
-You can download this script at
-http://jean-francois.richard.name/git-home-history[].
+You can grab a copy of the project using Git:
 
-The manpage you are reading is at
-http://jean-francois.richard.name/git-home-history.txt[], in AsciiDoc
-format.
+------------
+$ git-clone http://jean-francois.richard.name/ghh.git
+------------
 
-Someday we will probably have a nice package.  :)
+For convenience, the script itself and its manpage in AsciiDoc format
+are available at
+http://jean-francois.richard.name/git-commit-history[] and
+http://jean-francois.richard.name/git-commit-history.txt[].
+
+These files might not be as up-to-date as the files in the Git
+repository.
 
 AUTHORS
 -------

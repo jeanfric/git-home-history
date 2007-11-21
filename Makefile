@@ -22,13 +22,24 @@ man1dir         = $(mandir)/man1
 
 MAN1_TXT= git-home-history.txt
 DOC_MAN1=$(patsubst %.txt,%.1,$(MAN1_TXT))
+DOC_HTML=$(patsubst %.txt,%.html,$(MAN1_TXT))
 
 all: git-home-history man
 .DEFAULT: all
 
+# A convenient target for jfrichard to send the data
+# to the webserver
+dist: all html
+	./send-dist.sh
 
 man: man1
 man1: $(DOC_MAN1)
+
+html: $(DOC_HTML)
+
+%.html : %.txt
+	a2x -f xhtml $<
+	rm -f $(patsubst %.txt,%.xml,$<)
 
 %.1 : %.txt
 	a2x -f manpage $<

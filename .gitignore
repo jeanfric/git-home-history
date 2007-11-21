@@ -1,3 +1,4 @@
 *.1
 *.xml
 *.html
+/send-dist.sh
