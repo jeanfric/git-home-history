@@ -125,18 +125,28 @@ function init() {
 .*
 !/.ssh
 
-# Add other "dot" files you do *not* want ignored here:
+# but... some "dot" files you probably do *not* want ignored are
+# listed here:
 
-!/.maildir
-!/.mail
-!/.Maildir
 !/.emacs
+!/.mail
+!/.maildir
+!/.Maildir
 !/.mail-aliases
 !/.muttrc
 !/.vimrc
 
-# *Always* leave this line in place, at the bottom of the file:
-!.gitignore
+# We do not want to track the tracking of other files
+.git
+.svn
+CVS
+
+# *Always* leave these lines in place, at the bottom of the file:
+.gitignore
+!/.gitignore
+# Ignore all .gitignore files in subdirectories, but do *not* ignore
+# the top-level one
+
 EOF
 
     if test "${buguser}" = "true"; then
