@@ -18,6 +18,7 @@ SYNOPSIS
 'git-home-history' archive-to <file>
 'git-home-history' extract-archive-to <dir>
 'git-home-history' ls-ignored-files
+'git-home-history' ls-stored-files
 'git-home-history' rm-all
 'git-home-history' rm-older-than <timespec>
 
@@ -91,6 +92,10 @@ ls-ignored-files::
        Shows files that are ignored. To change what should be
        untracked from now on, edit '\~/.gitignore'.  If a file is
        newly ignored, you need to commit before seing it as ignored.
+
+ls-stored-files::
+
+       Shows all files in the last commit.
 
 rm-all::
 

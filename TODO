@@ -1,0 +1,13 @@
+* Add a ls-stored as of <timespec>
+* Add a pair of
+  - ghh take <dir_or_file>:
+      commit the dir_or_file then remove it (recursively)
+      meant as a way to clean up some part of the home
+      directory
+      error out early if something is ignored in the dir
+      (what to do if the dir is another git repo? will it
+      be ignored by git or saved as normal dir?)
+  - ghh give <dir_or_file> into <dir> [as of <timespec>]
+      get the dir_or_file checked out to a directory
+      check if directory exists.  if so tell user to move it,
+      then checkout
