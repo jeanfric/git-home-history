@@ -21,7 +21,7 @@ if ! which git &>/dev/null; then
     exit 1
 fi
 
-USAGE='[ archive-to <file> | extract-archive-to <dir> | commit | init | ls-ignored-files | rm-all | rm-older-than <timespec> | show <file> as of <timespec> ]'
+USAGE='[ archive-to <file> | extract-archive-to <dir> | commit | init | ls-ignored-files | ls-stored-files | rm-all | rm-older-than <timespec> | show <file> as of <timespec> ]'
 SCRIPT_NAME=$(basename $0)
 
 ORIG_DIR="$( pwd )"
@@ -71,17 +71,12 @@ function __abort_on_no_gpg() {
 function init() {
     __abort_on_initialized
 
-    local buguser=true
-    if test "${1}" = "dontbug"; then
-	buguser=false
-    fi
-
     # I know it's the default... but let's be explicit!
     git-init --shared=umask
     chmod -R u+rwX,go-rwx .git
 
     # Add a gitweb description
-    echo "git-home-history of ${USER} on $(hostname -f)" > .git/description
+    echo "git-home-history of ${HOME} on $(hostname -f)" > .git/description
 
     # Make sure there is a 'name' field in config... some git scripts
     # complain if not
@@ -103,71 +98,63 @@ function init() {
 # Here are some examples of what you might want to ignore
 # in your git-home-history.  Feel free to modify.
 #
+# Example rules start with '##'.
+# You can remove the '##' to set the rule.
+#
 # The rules are read from top to bottom, so a rule can
 # "cancel" out a previous one.  Be careful.
 #
 # For more information on the syntax used in this file,
 # see "man gitignore"
 
-/${XDG_DOWNLOAD_DIR:-Download}
-/${XDG_VIDEOS_DIR:-Videos}
-/${XDG_MUSIC_DIR:-Music}
+##/${XDG_DOWNLOAD_DIR:-Download}
+##/${XDG_VIDEOS_DIR:-Videos}
+##/${XDG_MUSIC_DIR:-Music}
 
 # Notice the '!' below.  This tells git to _not_ ignore a file or
 # directory, in this case, we do not want to ignore a particular
 # directory under Music/, which is ignored according to the rule above
 
-!/${XDG_MUSIC_DIR:-Music}/Our_Daughter--Flute
+##!/${XDG_MUSIC_DIR:-Music}/Our_Daughter--Flute
 
 # You probably want to ignore all the "dot" files in your home
 # directory, since they mostly contain local application data.
 
-.*
-!/.ssh
-
+##/.*
 # but... some "dot" files you probably do *not* want ignored are
 # listed here:
+##!/.emacs
+##!/.gnupg
+##!/.mail
+##!/.maildir
+##!/.Maildir
+##!/.mail-aliases
+##!/.muttrc
+##!/.ssh
+##!/.vimrc
 
-!/.emacs
-!/.mail
-!/.maildir
-!/.Maildir
-!/.mail-aliases
-!/.muttrc
-!/.vimrc
-
-# We do not want to track the tracking of other files
-.git
+# We do not want to track the tracking of other files:
 .svn
 CVS
 
-# *Always* leave these lines in place, at the bottom of the file:
+# You should leave these lines at the bottom of the file.
+# Remove only if you really know what you are doing.
 .gitignore
 !/.gitignore
-# Ignore all .gitignore files in subdirectories, but do *not* ignore
-# the top-level one
 
 EOF
-
-    if test "${buguser}" = "true"; then
-	cat << EOF >> .gitignore
-
-# GIT-HOME-HISTORY-NOT-VERIFIED---REMOVE-ME-WHEN-DONE
-EOF
-    fi
 
     git-add .gitignore
     git-commit -q -a -m"Initialized by $SCRIPT_NAME"
     echo
-    echo "Things you have to do:"
-    echo "1) Edit '~/.gitignore' to set what to *not* track with git-home-history"
-    echo "   Run '$SCRIPT_NAME ls-ignored-files' to see what will be ignored"
-    echo "2) Run '$SCRIPT_NAME commit' to save a first state in your history"
+    echo "You might be interested in tweaking the ~/.gitignore file"
+    echo
+    echo "Please run '$SCRIPT_NAME commit' to save a first state in your history"
 }
 
 function rm_all() {
     if __has_initialized; then
-	echo "Removing all git data, this may take some time "
+	echo "Removing all git-home-history data, this may take some time "
         # We don't remove '.git', as the user might have
         # mounted/linked .git from somewhere else.  Removing the link
         # would silently brake what the user was expecting; removing a
@@ -183,10 +170,6 @@ function rm_all() {
 function commit() {
     __abort_on_not_initialized
 
-    grep '# GIT-HOME-HISTORY-NOT-VERIFIED---REMOVE-ME-WHEN-DONE' \
-	.gitignore &>/dev/null \
-	&& die "Please edit '.gitignore', go to the bottom of the file and remove the line."
-
     echo "Committing to repository, this may take a long time" >&2
     # I don't like myself for using such a sloppy way of
     # removing previously-tracked newly-ignored files...
@@ -194,7 +177,7 @@ function commit() {
     if git-ls-files -m .gitignore | egrep -q '^.gitignore$'; then
 	git-rm --cached -r -f . >/dev/null
     fi
-    git-add . \
+    git-add -v . \
 	|| die "Could not complete addition of files to history store!"
     git-commit -q -a -m"Committed on $( date -R )"
     git-gc --auto 2>/dev/null || git-gc # the --auto is on newer versions
@@ -274,15 +257,11 @@ function archive_to() {
     __abort_on_no_gpg
 
     if test "${output}" != "-"; then
-	output="${1%.git.tar.gpg}.git.tar.gpg"
+	output="${ORIG_DIR}/${1%.git.tar.gpg}.git.tar.gpg"
     fi
-
-    pushd "${ORIG_DIR}" >/dev/null
 
     echo "Saving archive, this may take a long time" >&2
     tar -cpf - .git | gpg -c --output "${output}"
-
-    popd >/dev/null
 }
 
 
@@ -290,9 +269,9 @@ function extract_archive_to() {
     __abort_on_no_gpg
 
     # Usea the path from where the command was run: ORIG_DIR
-    archive="${1%.git}.git"
-
     pushd "${ORIG_DIR}" >/dev/null
+
+    archive="${1%.git}.git"
 
     if test -e "${archive}"; then
 	echo "$(basename ${archive}) already exists, please move it away" >&2
@@ -303,11 +282,11 @@ function extract_archive_to() {
     mkdir "${archive}" >&2
     # We only specify .git to unpack.  Else a user could well unpack
     # something else and trash his files
-    gpg -d - | tar -xpf - --strip-components 1 -C"${archive}"
+    gpg -d - | tar --strip-components 1 -C"${archive}" -xpf - .git
     echo
     echo "You can check what files are inside the newly unpacked directory with"
     echo "GIT_DIR=\"${archive}\" gitk"
-    echo "GIT_DIR=\"${archive}\" git-ls-files"
+    echo "GIT_DIR=\"${archive}\" git-ls-tree --name-only HEAD"
 
     popd >/dev/null
 }
@@ -361,7 +340,11 @@ case "${1}" in
 	rm_all
 	;;
     ls-ignored-files)
-	git-ls-files --exclude-per-directory=.gitignore -X .git/info/exclude -i -o --directory
+	echo "After the last commit, these files were ignored:" >&2
+	git-ls-files --exclude-from=.gitignore -i -o --directory
+	;;
+    ls-stored-files)
+	git-ls-tree -r --name-only HEAD
 	;;
     --help|-h|help)
 	if test -e ./git-home-history.1; then
