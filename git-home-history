@@ -21,9 +21,7 @@ if ! which git &>/dev/null; then
     exit 1
 fi
 
-USAGE='[ archive-to <file> | extract-archive-to <dir> | commit | init | ls-ignored-files | ls-stored-files | rm-all | rm-older-than <timespec> | show <file> as of <timespec> ]'
 SCRIPT_NAME=$(basename $0)
-
 ORIG_DIR="$( pwd )"
 # Remember that all actions here are to be made in $HOME dir!
 cd ~
@@ -137,11 +135,6 @@ function init() {
 .svn
 CVS
 
-# You should leave these lines at the bottom of the file.
-# Remove only if you really know what you are doing.
-.gitignore
-!/.gitignore
-
 EOF
 
     git-add .gitignore
@@ -177,10 +170,10 @@ function commit() {
     if git-ls-files -m .gitignore | egrep -q '^.gitignore$'; then
 	git-rm --cached -r -f . >/dev/null
     fi
-    git-add -v . \
+    git-add . \
 	|| die "Could not complete addition of files to history store!"
-    git-commit -q -a -m"Committed on $( date -R )"
-    git-gc --auto 2>/dev/null || git-gc # the --auto is on newer versions
+    git-commit -a -m"Committed on $( date -R )" -- $@
+    git-gc --auto || git-gc # the --auto is on newer versions
 }
 
 
@@ -251,10 +244,11 @@ function show() {
     GIT_PAGER=cat git-show "HEAD@{'${time_spec}'}:${file_to_restore}"
 }
 
-
 function archive_to() {
     __abort_on_not_initialized
     __abort_on_no_gpg
+
+    output="$1"
 
     if test "${output}" != "-"; then
 	output="${ORIG_DIR}/${1%.git.tar.gpg}.git.tar.gpg"
@@ -286,11 +280,33 @@ function extract_archive_to() {
     echo
     echo "You can check what files are inside the newly unpacked directory with"
     echo "GIT_DIR=\"${archive}\" gitk"
-    echo "GIT_DIR=\"${archive}\" git-ls-tree --name-only HEAD"
+    echo "GIT_DIR=\"${archive}\" git-home-history ls-stored-files"
 
     popd >/dev/null
 }
 
+function ls_stored_files() {
+    __abort_on_not_initialized
+
+    if test "$#" -gt "2"; then
+	shift # as
+	shift # of
+	time_spec="$@"
+	git-ls-tree -r --name-only "HEAD@{tree}@{$time_spec}"
+    else
+	git-ls-tree -r --name-only HEAD
+    fi
+}
+
+function eat() {
+    __abort_on_not_initialized
+
+    git-add -v -- $@ || die "Could not add '$@' to the history store"
+    commit $@
+    git-rm -r -f -- $@ || die "Problem removing '$@'"
+    rm -rf -- $@ # some empty dirs may remain. clean'em up
+    commit $@
+}
 
 case "${1}" in
     init)
@@ -309,9 +325,8 @@ case "${1}" in
 	    echo "Please specify one output archive file" >&2
 	    echo "e.g. cat archive | $SCRIPT_NAME extract-archive-to machineA.git" >&2
 	    exit 1
-	else
-	    extract_archive_to "${1}"
 	fi
+	extract_archive_to "${1}"
 	;;
     show)
 	shift
@@ -319,12 +334,25 @@ case "${1}" in
 	    echo "Please specify what to show from the history store, as of when" >&2
 	    echo "e.g. $SCRIPT_NAME show 'myfile.txt' as of 2 days ago" >&2
 	    exit 1
-	else
-	    show ${@}
 	fi
+	show ${@}
 	;;
     commit)
 	commit
+	;;
+    eat)
+	if test "$ORIG_DIR" != "${HOME}"; then
+	    echo "Please run this from your home directory" >&2
+	    echo "cd ${HOME}" >&2
+	    exit 1
+	fi
+	shift
+	if test "$#" -lt "1"; then
+	    echo "Please specify what file or directory to eat" >&2
+	    echo "e.g. $SCRIPT_NAME eat 'myfile.txt'" >&2
+	    exit 1
+	fi
+	eat $@
 	;;
     rm-older-than)
 	shift
@@ -332,31 +360,57 @@ case "${1}" in
 	    echo "Please add a time specification" >&2
 	    echo "e.g. '1 year ago' or '1979-02-26 18:30:00'" >&2
 	    exit 1
-	else
-	    rm_older_than ${@}
 	fi
+	rm_older_than ${@}
 	;;
     rm-all)
 	rm_all
 	;;
+    ls-uncommitted-files)
+	echo "These files are not yet stored:" >&2
+	git-ls-files --exclude-from=.gitignore -o --directory
+	echo "Use '$SCRIPT_NAME commit' to store them" >&2
+	;;
     ls-ignored-files)
-	echo "After the last commit, these files were ignored:" >&2
+	echo "Since the last commit, these files are ignored:" >&2
 	git-ls-files --exclude-from=.gitignore -i -o --directory
 	;;
     ls-stored-files)
-	git-ls-tree -r --name-only HEAD
+	shift
+	ls_stored_files $@
 	;;
     --help|-h|help)
-	if test -e ./git-home-history.1; then
-	    man ./git-home-history.1
-	elif test -e ./git-home-history.txt; then
-	    less ./git-home-history.txt
+	if test -e "$ORIG_DIR/git-home-history.1"; then
+	    man "$ORIG_DIR/git-home-history.1"
+	elif test -e "$ORIG_DIR/git-home-history.txt"; then
+	    less "$ORIG_DIR/git-home-history.txt"
 	else
 	    man git-home-history
 	fi
 	;;
     *)
-	echo "usage: $SCRIPT_NAME $USAGE" >&2
+	echo "usage: $SCRIPT_NAME <action>"
+	echo
+	echo "<action> can be:"
+	echo "    help"
+	echo "    init"
+	echo "    commit"
+	echo "    eat <file_or_dir>"
+	echo "    show <file> as of <time_spec>"
+	echo "    ls-uncommitted-files"
+	echo "    ls-ignored-files"
+	echo "    ls-stored-files [as of <time_spec>]"
+	echo "    archive-to <file>"
+	echo "    extract-archive-to <dir>"
+	echo "    rm-all"
+	echo "    rm-older-than <time_spec>"
+	echo 
+	echo "<time_spec> examples:"
+	echo "    5 days ago"
+	echo "    2 days 2 hours 3 seconds ago"
+	echo "    1979-02-26 18:30:00"
+	echo ""
+	echo "see 'man git-home-history' for more information"
 	exit 1
 	;;
 esac

@@ -14,13 +14,14 @@ SYNOPSIS
 [verse]
 'git-home-history' init
 'git-home-history' commit
-'git-home-history' show <file> as of <timespec>
+'git-home-history' show <file> as of <time_spec>
+'git-home-history' eat <file_or_dir>
 'git-home-history' archive-to <file>
 'git-home-history' extract-archive-to <dir>
 'git-home-history' ls-ignored-files
-'git-home-history' ls-stored-files
+'git-home-history' ls-stored-files [as of <time_spec>]
 'git-home-history' rm-all
-'git-home-history' rm-older-than <timespec>
+'git-home-history' rm-older-than <time_spec>
 
 DESCRIPTION
 -----------
@@ -47,9 +48,9 @@ commit::
        Save your home history to your repository. You can run this
        from wherever you are in the filesystem
 
-show <file> as of <timespec>::
+show <file> as of <time_spec>::
 
-       Outputs the content of <file>, as stored as of <timespec>.
+       Outputs the content of <file>, as stored as of <time_spec>.
 +
 --
 Example:
@@ -73,17 +74,35 @@ git-home-history archive-to - \
     | ssh me@remote 'cat > home-machineA.git.tar.gpg'
 ------------
 --
+archive-to <file>::
 
-extract-archive-to <dir>::
-
-       Reads a GPG-ed TAR file from stdin and extract it to <dir>
-       directory.
+       Outputs a GPG-ed TAR (with suggested extension: .git.tar.gpg)
+       to <file>. Note that <file> can be '-' to send to stdout. The
+       archive is encrypted symmetrically with a password.
 +
 --
 Example:
 ------------
-$ cat home-on-machineA.git.tar.gpg \
-    | git-home-history extract-archive-to home-on-machineA.git
+git-home-history archive-to /tmp/home-at-machineX.git.tar.gpg
+git-home-history archive-to - \
+    | ssh me@remote 'cat > home-machineA.git.tar.gpg'
+------------
+--
+
+eat <file_or_dir>::
+
+       Adds all modifications in file or directory to the history
+       store, then removes the file or directory.  Useful to clean up
+       the home directory.
++
+--
+Example:
+------------
+$ ls 
+dirA dirB
+$ git-home-history eat dirA
+$ ls
+dirB
 ------------
 --
 
@@ -93,18 +112,19 @@ ls-ignored-files::
        untracked from now on, edit '\~/.gitignore'.  If a file is
        newly ignored, you need to commit before seing it as ignored.
 
-ls-stored-files::
+ls-stored-files [as of <time_spec>]::
 
-       Shows all files in the last commit.
+       Shows all files in the last commit, or, optionally, as of
+       'time_spec'.
 
 rm-all::
 
        Reinitialize (read *delete all*) '\~/.git/\*' and
        '\~/.gitignore'.
 
-rm-older-than <timespec>::
+rm-older-than <time_spec>::
 
-       Removes all commits older than <timespec>.  It is a risky
+       Removes all commits older than <time_spec>.  It is a risky
        operation for now.  Not recommended.
 +
 --
