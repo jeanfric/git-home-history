@@ -74,7 +74,7 @@ function init() {
     chmod -R u+rwX,go-rwx .git
 
     # Add a gitweb description
-    echo "git-home-history of ${HOME} on $(hostname -f)" > .git/description
+    echo "git-home-history of $HOME on $(hostname -f)" > .git/description
 
     # Make sure there is a 'name' field in config... some git scripts
     # complain if not
@@ -82,9 +82,7 @@ function init() {
 	  git config user.name "$USER"
     fi
 
-
-
-    # Check for xdg-user-dirs
+    # Check for xdg-user-dirs to provide sane defaults in .gitignore
     # http://www.freedesktop.org/wiki/Software/xdg-user-dirs
     test -f ${XDG_CONFIG_HOME:-~/.config}/user-dirs.dirs && source ${XDG_CONFIG_HOME:-~/.config}/user-dirs.dirs
     XDG_DOWNLOAD_DIR=$( echo ${XDG_DOWNLOAD_DIR#${HOME}} | sed 's:^/*::' )
@@ -119,8 +117,11 @@ function init() {
 # directory, since they mostly contain local application data.
 
 ##/.*
-# but... some "dot" files you probably do *not* want ignored are
+# but... some dot files you probably do *not* want ignored are
 # listed here:
+##!/.bash*
+##!/.tcsh*
+##!/.zsh*
 ##!/.emacs
 ##!/.gnupg
 ##!/.mail
@@ -134,6 +135,9 @@ function init() {
 # We do not want to track the tracking of other files:
 .svn
 CVS
+# Please note that all files in a git project are ignored
+# e.g. linux-2.6/ will be entirely ignored if linux-2.6/.git exists
+# Thus it is not necessary to add ".git" to this .gitignore file
 
 EOF
 
@@ -162,32 +166,34 @@ function rm_all() {
 
 function commit() {
     __abort_on_not_initialized
+    local what=$@
+    local modifier=
 
     echo "Committing to repository, this may take a long time" >&2
     # I don't like myself for using such a sloppy way of
     # removing previously-tracked newly-ignored files...
     # :(  help me! ahhhhrrrggg
+    # seems like the only way to stop tracking newly-ignored files
     if git-ls-files -m .gitignore | egrep -q '^.gitignore$'; then
 	git-rm --cached -r -f . >/dev/null
     fi
     git-add . \
 	|| die "Could not complete addition of files to history store!"
-    git-commit -a -m"Committed on $( date -R )" -- $@
+    test -n "$what" || modifier="-a"
+    git-commit $modifier -m"Committed on $( date -R )" -- $@
     git-gc --auto || git-gc # the --auto is on newer versions
 }
 
 
 function rm_older_than() {
     __abort_on_not_initialized
+    local time_spec=$@
 
     if ! which git-filter-branch &>/dev/null; then
 	echo "Please install a recent version of Git" >&2
 	echo "See http://git.or.cz for more information about Git" >&2
 	exit 1
     fi
-
-
-    local time_spec=${@}
 
     if test $(git-rev-parse "HEAD@{$time_spec}") = "$(git-rev-parse HEAD)"; then
 	local TMOUT=20
@@ -198,7 +204,7 @@ function rm_older_than() {
 
     # Something like that
     git-filter-branch --parent-filter \
-	'test $(git-rev-parse "HEAD@{$time_spec}") = "${GIT_COMMIT}" || cat ' \
+	'test $(git-rev-parse "HEAD@{$time_spec}") = "$GIT_COMMIT" || cat ' \
 	HEAD
     if test "$?" != "0"; then
 	die "Please make sure you did '$SCRIPT_NAME commit' before removing old files."
@@ -221,10 +227,10 @@ function rm_older_than() {
     # date, a cleanup was made
     local removal_date=$( date -R )
     local witness_file=.git-home-history-last-removal
-    local msg="Removed older than '${time_spec}' on ${removal_date}"
-    echo "${msg}" > ${witness_file}
-    git add ${witness_file}
-    git commit -m"${msg}" ${witness_file}
+    local msg="Removed older than '$time_spec' on $removal_date"
+    echo "$msg" > ${witness_file}
+    git add $witness_file
+    git commit -m"$msg" $witness_file
 
     # Finally make sure everything is ok, and remove old stuff
     git-gc --prune
@@ -234,53 +240,53 @@ function rm_older_than() {
 function show() {
     __abort_on_not_initialized
 
-    local file_to_restore=${1}
+    local file_to_restore=$1
     shift
     shift # 'as'
     shift # 'of'
-    local time_spec=${@}
+    local time_spec=$@
 
-    echo "Showing: ${HOME}/${file_to_restore}" >&2
-    GIT_PAGER=cat git-show "HEAD@{'${time_spec}'}:${file_to_restore}"
+    echo "Showing: $HOME/$file_to_restore" >&2
+    GIT_PAGER=cat git-show "HEAD@{'$time_spec'}:$file_to_restore"
 }
 
 function archive_to() {
     __abort_on_not_initialized
     __abort_on_no_gpg
 
-    output="$1"
+    local output="$1"
 
-    if test "${output}" != "-"; then
-	output="${ORIG_DIR}/${1%.git.tar.gpg}.git.tar.gpg"
+    if test "$output" != "-"; then
+	output="$ORIG_DIR/${1%.git.tar.gpg}.git.tar.gpg"
     fi
 
-    echo "Saving archive, this may take a long time" >&2
-    tar -cpf - .git | gpg -c --output "${output}"
+    echo "Saving archive to '$output'" >&2
+    echo "This may take a long time" >&2
+    tar -cpf - .git | gpg -c --output "$output"
 }
 
 
 function extract_archive_to() {
     __abort_on_no_gpg
+    local archive="${1%.git}.git"
 
-    # Usea the path from where the command was run: ORIG_DIR
-    pushd "${ORIG_DIR}" >/dev/null
+    # Use the path from where the command was run: ORIG_DIR
+    pushd "$ORIG_DIR" >/dev/null
 
-    archive="${1%.git}.git"
-
-    if test -e "${archive}"; then
-	echo "$(basename ${archive}) already exists, please move it away" >&2
+    if test -e "$archive"; then
+	echo "$(basename $archive) already exists, please move it away" >&2
 	exit 1
     fi
 
     echo "Extracting archive, this may take a long time" >&2
-    mkdir "${archive}" >&2
+    mkdir "$archive" >&2
     # We only specify .git to unpack.  Else a user could well unpack
     # something else and trash his files
-    gpg -d - | tar --strip-components 1 -C"${archive}" -xpf - .git
+    gpg -d - | tar --strip-components 1 -C"$archive" -xpf - .git
     echo
     echo "You can check what files are inside the newly unpacked directory with"
-    echo "GIT_DIR=\"${archive}\" gitk"
-    echo "GIT_DIR=\"${archive}\" git-home-history ls-stored-files"
+    echo "GIT_DIR=\"$archive\" gitk"
+    echo "GIT_DIR=\"$archive\" git-home-history ls-stored-files"
 
     popd >/dev/null
 }
@@ -291,7 +297,7 @@ function ls_stored_files() {
     if test "$#" -gt "2"; then
 	shift # as
 	shift # of
-	time_spec="$@"
+	local time_spec="$@"
 	git-ls-tree -r --name-only "HEAD@{tree}@{$time_spec}"
     else
 	git-ls-tree -r --name-only HEAD
@@ -308,15 +314,15 @@ function eat() {
     commit $@
 }
 
-case "${1}" in
+case "$1" in
     init)
 	shift
-	init ${@}
+	init $@
 	;;
     archive-to)
 	# output can be stdout, using '-' or a file
 	shift
-	archive_to ${@}
+	archive_to $@
 	;;
     extract-archive-to)
 	# output can only be a file
@@ -326,7 +332,7 @@ case "${1}" in
 	    echo "e.g. cat archive | $SCRIPT_NAME extract-archive-to machineA.git" >&2
 	    exit 1
 	fi
-	extract_archive_to "${1}"
+	extract_archive_to "$1"
 	;;
     show)
 	shift
@@ -335,15 +341,15 @@ case "${1}" in
 	    echo "e.g. $SCRIPT_NAME show 'myfile.txt' as of 2 days ago" >&2
 	    exit 1
 	fi
-	show ${@}
+	show $@
 	;;
     commit)
 	commit
 	;;
     eat)
-	if test "$ORIG_DIR" != "${HOME}"; then
+	if test "$ORIG_DIR" != "$HOME"; then
 	    echo "Please run this from your home directory" >&2
-	    echo "cd ${HOME}" >&2
+	    echo "cd $HOME" >&2
 	    exit 1
 	fi
 	shift
@@ -361,7 +367,7 @@ case "${1}" in
 	    echo "e.g. '1 year ago' or '1979-02-26 18:30:00'" >&2
 	    exit 1
 	fi
-	rm_older_than ${@}
+	rm_older_than $@
 	;;
     rm-all)
 	rm_all

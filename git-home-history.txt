@@ -1,7 +1,5 @@
 git-home-history(1)
 ===================
-Jean-Francois Richard <jean-francois@richard.name>
-:Author Initials: JFR
 
 NAME
 ----
@@ -135,8 +133,8 @@ $ git-home-history rm-older-than 1979-02-26 18:30:00
 ------------
 --
 
-Basic usage/tutorial
---------------------
+BASIC USAGE
+-----------
 
 'git-home-history' is simple to use.  You must first setup your
 history store with `git-home-history init`, then tell it what to
@@ -216,7 +214,7 @@ $ git-log
 $ gitk
 ------------
 
-Remote backups to secure machines
+REMOTE BACKUPS TO SECURE MACHINES
 ---------------------------------
 
 You can use the various Git tools to efficiently clone your history
@@ -260,7 +258,7 @@ You can set up multiple remotes and use different transfer schemes
 the `git-push` man page for more information.
 
 
-Storing history on locally mounted remote directory
+STORING HISTORY ON LOCALLY MOUNTED REMOTE DIRECTORY
 ---------------------------------------------------
 
 Since Git stores its data in your home directory, under '.git', you
@@ -293,7 +291,7 @@ $ ln -s /media/disk/bak-machineA.git .git
 
 
 
-Cleaning up the past
+CLEANING UP THE PAST
 --------------------
 
 Important: this feature is risky to use, for now.  We need a
@@ -315,8 +313,8 @@ your repository.  If you were syncing with git tools (such as
 and re initialize it.  Really, use at your own risks (for now).
 
 
-Start anew
-----------
+STARTING ANEW
+-------------
 
 You can delete all your previous commits by issuing:
 
@@ -325,8 +323,8 @@ $ ./git-home-history rm-all
 ------------
 
 
-Automatic scheduled commiting
------------------------------
+AUTOMATIC SCHEDULED COMMITTING
+------------------------------
 
 On most UNIX systems, you can simply run, as a user:
 
@@ -342,8 +340,8 @@ $ cd ~
 $ git-log
 ------------
 
-How to preserve permissions
----------------------------
+PRESERVING PERMISSIONS
+----------------------
 
 There is a hook that, at commit, writes all permissions to a special
 file, and, at checkout, restores them.  The script is
@@ -351,7 +349,14 @@ file, and, at checkout, restores them.  The script is
 script itself to know more.  We do not (yet) support it or know much
 about it.
 
-Downloads and updates
+CAVEATS
+-------
+
+If you have Git projects in your home, their contents will not be
+stored. Git does not add any subdirectory that contains another Git
+repository.
+
+DOWNLOADS AND UPDATES
 ---------------------
 
 You can grab a copy of the project using Git:
@@ -368,7 +373,7 @@ http://jean-francois.richard.name/git-home-history.txt[].
 These files might not be as up-to-date as the files in the Git
 repository.
 
-Discussion
+DISCUSSION
 ----------
 
 You can visit the group discussion page at
