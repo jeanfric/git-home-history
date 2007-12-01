@@ -1,0 +1,172 @@
+#!/usr/bin/env python
+#
+# Copyright (c) 2007 Jean-Francois Richard <jean-francois@richard.name>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/>.
+
+
+import gobject
+import gtk
+import os
+import os.path
+import signal
+import time
+import subprocess
+
+class GHHWindow:
+    def __init__(self):
+        self.liststore = gtk.ListStore(str)
+        self.treeview = gtk.TreeView(self.liststore)
+
+        self.tvcolumn = gtk.TreeViewColumn('Files')
+        self.treeview.append_column(self.tvcolumn)
+
+        self.cell = gtk.CellRendererText()
+        self.tvcolumn.pack_start(self.cell, True)
+        self.tvcolumn.add_attribute(self.cell, 'text', 0)
+
+        self.label1 = gtk.Label("")
+        self.label1.set_markup("<b>List files stored as of:</b>")
+        self.calendar = gtk.Calendar()
+        self.refresh_list = gtk.Button(stock = gtk.STOCK_REFRESH)
+        self.refresh_list.connect("clicked", self.restart_refresh_file_list)
+        self.autostart = gtk.CheckButton("Start g-h-h when I log in")
+        self.autostart.set_active(Autostart().is_enabled())
+        self.autostart.connect("toggled", self.toggle_autostart)
+
+        self.hbox1 = gtk.HBox(False, 12)
+        self.vbox1 = gtk.VBox(False, 12)
+        self.hbox2 = gtk.HBox(False, 0)
+        self.swindow = gtk.ScrolledWindow()
+        self.swindow.add_with_viewport(self.treeview)
+        self.hbox2.pack_start(self.label1, False)
+
+        self.vbox1.pack_start(self.hbox2, False)
+        self.vbox1.pack_start(self.calendar, False)
+        self.vbox1.pack_start(self.refresh_list, False)
+        self.vbox1.pack_start(gtk.Label())
+        self.vbox1.pack_start(self.autostart, False)
+
+        self.hbox1.pack_start(self.vbox1, False)
+        self.hbox1.pack_start(self.swindow)
+
+        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window.set_title("gtk-git-home-history")
+        self.window.set_size_request(800, 400)
+        self.window.set_border_width(12)
+        self.window.connect("delete_event", self.delete_event)
+        self.window.add(self.hbox1)
+        self.window.show_all()
+
+        self.idle_id = None
+        self.subprocess = None
+        self.restart_refresh_file_list(None)
+
+
+    def delete_event(self, widget, event, data=None):
+        gtk.main_quit()
+        return False
+
+    def toggle_autostart(self, widget):
+        if self.autostart.get_active():
+            Autostart().add()
+        else:
+            Autostart().remove()
+
+    def calendar_date_to_string(self):
+        year, month, day = self.calendar.get_date()
+        mytime = time.mktime((year, month+1, day, 0, 0, 0, 0, 0, -1))
+        return time.strftime("%x", time.localtime(mytime))
+
+    def stop_refresh_file_list(self):
+        if self.subprocess != None:
+            os.kill(self.subprocess.pid, signal.SIGTERM)
+        if self.idle_id != None:
+            gobject.source_remove(self.idle_id)
+        self.subprocess = None
+
+    def restart_refresh_file_list(self, widget):
+        self.stop_refresh_file_list()
+        self.liststore.clear()
+        self.idle_id = gobject.idle_add(self.refresh_file_list,
+                                        self.calendar_date_to_string())
+    def refresh_file_list(self, timespec):
+        if self.subprocess == None:
+            print "git-home-history ls-stored-files as of %s" % timespec
+            self.subprocess = subprocess.Popen(
+                "git-home-history ls-stored-files as of %s" % timespec,
+                shell="True",
+                stdout=subprocess.PIPE)
+
+        # Read 16 lines at a time for maximum interactivity
+        for i in range(0, 16):
+            line = self.subprocess.stdout.readline()
+            if len(line) > 0:
+                self.liststore.append([line.strip()])
+
+        if len(line) == 0 and self.subprocess.poll() != None:
+            self.stop_refresh_file_list()
+            return False
+        # not finished yet ...  call back please, until end of
+        # consumption of child output
+        return True
+
+
+class Autostart:
+    def __init__(self):
+        if "KDE_FULL_SESSION" in os.environ:
+            autostart_dir = os.path.expanduser("~/.kde/Autostart")
+        else:
+            config_home = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+            self.autostart_dir = os.path.join(
+                os.path.expanduser(config_home),
+                "autostart")
+        self.destination = os.path.join (
+            self.autostart_dir,
+            "git-home-history.desktop")
+
+    def is_enabled(self):
+        return os.path.exists(self.destination)
+
+    def add(self):
+        if os.path.exists(self.destination):
+            return
+        try:
+            os.makedirs(self.autostart_dir)
+        except:
+            pass
+        try:
+            f = open(self.destination, "w")
+            f.write("#test")
+            f.close()
+        except:
+            pass
+
+    def remove(self):
+        if not os.path.exists(self.destination):
+            return
+        try:
+            os.remove (self.destination)
+            os.removedirs(self.autostart_dir)
+        except:
+            pass
+
+
+def main():
+    gtk.main()
+
+if __name__ == "__main__":
+    g = GHHWindow()
+    main()
