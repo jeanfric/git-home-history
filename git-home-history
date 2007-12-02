@@ -103,7 +103,8 @@ function init() {
 # "cancel" out a previous one.  Be careful.
 #
 # For more information on the syntax used in this file,
-# see "man gitignore"
+# see "man gitignore" in a terminal or visit
+# http://www.kernel.org/pub/software/scm/git/docs/gitignore.html
 
 ##/${XDG_DOWNLOAD_DIR:-Download}
 ##/${XDG_VIDEOS_DIR:-Videos}
@@ -116,7 +117,7 @@ function init() {
 ##!/${XDG_MUSIC_DIR:-Music}/Our_Daughter--Flute
 
 # You probably want to ignore all the "dot" files in your home
-# directory, since they mostly contain local application data.
+# directory, since they mostly contain local application state data.
 
 ##/.*
 # but... some dot files you probably do *not* want ignored are
@@ -135,11 +136,11 @@ function init() {
 ##!/.vimrc
 
 # We do not want to track the tracking of other files:
-.svn
-CVS
-# Please note that all files in a git project are ignored
-# e.g. linux-2.6/ will be entirely ignored if linux-2.6/.git exists
-# Thus it is not necessary to add ".git" to this .gitignore file
+#.svn
+#CVS
+# Please note that all files in a Git project are ignored
+# e.g. linux-2.6/ will be entirely ignored if linux-2.6/.git exists.
+# Thus it is not necessary to add ".git" here
 
 EOF
 
@@ -179,7 +180,7 @@ function commit() {
     if git-ls-files -m .gitignore | egrep -q '^.gitignore$'; then
 	git-rm --cached -r -f . >/dev/null
     fi
-    git-add . \
+    git-add -v . \
 	|| die "Could not complete addition of files to history store!"
     test -n "$what" || modifier="-a"
     git-commit $modifier -m"Committed on $( date -R )" -- $@
@@ -300,7 +301,7 @@ function ls_stored_files() {
 	shift # as
 	shift # of
 	local time_spec="$@"
-	git-ls-tree -r --name-only "HEAD@{tree}@{$time_spec}"
+	git-ls-tree -r --name-only "HEAD@{$time_spec}"
     else
 	git-ls-tree -r --name-only HEAD
     fi
@@ -317,9 +318,16 @@ function eat() {
 }
 
 case "$1" in
+    # private commands, meant for higher level user tools
+    private--init-and-commit)
+	if ! __has_initialized ; then
+	    init
+	fi
+	commit
+	;;
     init)
 	shift
-	init $@
+	init
 	;;
     archive-to)
 	# output can be stdout, using '-' or a file
