@@ -1,4 +1,6 @@
 *.1
 *.xml
 *.html
+*.bak
+*.gladep
 /send-dist.sh

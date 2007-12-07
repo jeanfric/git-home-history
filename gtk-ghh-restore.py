@@ -12,8 +12,9 @@ import tempfile
 import time
 
 def get_ghh():
+    if os.path.exists("./git-home-history"):
+        return os.path.abspath("./git-home-history")
     return "git-home-history"
-#    return os.path.abspath(os.path.join(sys.path[0], "git-home-history"))
 
 class GHHRestorer(object):
     def __init__(self):
@@ -49,12 +50,20 @@ class GHHRestorer(object):
 
         self.idle_id = None
         self.subprocess = None
-
+        self.toggled_count = 0
         self.widgets.get_widget("window").show_all()
+        self.restart_refresh_file_list(None)
 
     def file_toggled(self, widget, path, model):
         model[path][0] = not model[path][0]
-        return
+        if model[path][0] == False:
+            self.toggled_count = self.toggled_count - 1
+            if self.toggled_count <= 0:
+                self.widgets.get_widget("viewfiles_button").set_sensitive(False)
+        else:
+            self.toggled_count = self.toggled_count + 1
+            if self.toggled_count > 0:
+                self.widgets.get_widget("viewfiles_button").set_sensitive(True)
 
     def output_files(self, widget):
         outputdir = tempfile.mkdtemp()
@@ -77,7 +86,6 @@ class GHHRestorer(object):
         mytime = time.mktime((year, month+1, day, 0, 0, 0, 0, 0, -1))
         return time.strftime("%F", time.localtime(mytime))
 
-
     def stop_refresh_file_list(self):
         if self.subprocess != None and self.subprocess.poll() == None:
             # close the pipe, kill the child
@@ -89,10 +97,14 @@ class GHHRestorer(object):
     def restart_refresh_file_list(self, widget):
         self.stop_refresh_file_list()
         self.liststore.clear()
+        self.toggled_count = 0
+        self.widgets.get_widget("viewfiles_button").set_sensitive(False)
         timespec = "%s %s:%s" % (self.calendar_date_to_string(),
                                  self.widgets.get_widget("hentry").get_value_as_int(),
                                  self.widgets.get_widget("mentry").get_value_as_int())
         self.timespec_in_use = timespec
+        t = time.strftime("%c", time.strptime(self.timespec_in_use, "%Y-%m-%d %H:%M"))
+        self.widgets.get_widget("current_list_label").set_markup("<b>%s</b>" % t)
         self.idle_id = gobject.idle_add(self.refresh_file_list, timespec)
 
     def refresh_file_list(self, timespec):

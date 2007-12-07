@@ -11,8 +11,9 @@ import sys
 import vte
 
 def get_ghh():
+    if os.path.exists("./git-home-history"):
+        return os.path.abspath("./git-home-history")
     return "git-home-history"
-#    return os.path.abspath(os.path.join(sys.path[0], "git-home-history"))
 
 class GHHDialog(object):
     def __init__(self):
