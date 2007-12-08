@@ -112,7 +112,8 @@ function init() {
 
 # Notice the '!' below.  This tells git to _not_ ignore a file or
 # directory, in this case, we do not want to ignore a particular
-# directory under Music/, which is ignored according to the rule above
+# directory under Music/, which is ignored according to the rule
+# above.
 
 ##!/${XDG_MUSIC_DIR:-Music}/Our_Daughter--Flute
 
@@ -140,7 +141,7 @@ function init() {
 #CVS
 # Please note that all files in a Git project are ignored
 # e.g. linux-2.6/ will be entirely ignored if linux-2.6/.git exists.
-# Thus it is not necessary to add ".git" here
+# Thus it is not necessary to add ".git" here.
 
 EOF
 
@@ -318,7 +319,6 @@ function eat() {
 }
 
 case "$1" in
-    # private commands, meant for higher level user tools
     private--init-and-commit)
 	if ! __has_initialized ; then
 	    init
@@ -326,7 +326,6 @@ case "$1" in
 	commit
 	;;
     init)
-	shift
 	init
 	;;
     archive-to)

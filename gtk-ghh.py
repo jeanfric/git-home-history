@@ -27,6 +27,12 @@ class GHHDialog(object):
             "run_restore" : self.run_restore
             }
         self.widgets.signal_autoconnect(signal_handlers)
+        # we don't want to know.
+        # no.    don't try.     no.
+        subprocess.Popen("%s init" % get_ghh(),
+                         shell=True,
+                         stdout=open('/dev/null', 'w'),
+                         stderr=open('/dev/null', 'w'))
         self.widgets.get_widget("dialog").show_all()
 
     def edit_ignores(self, widget):

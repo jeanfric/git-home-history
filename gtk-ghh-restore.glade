@@ -6,12 +6,13 @@
     <property name="width_request">600</property>
     <property name="height_request">500</property>
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="border_width">10</property>
     <property name="title" translatable="yes">Restore from Home History Store</property>
     <signal name="delete_event" handler="gtk_main_quit"/>
     <child>
       <widget class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
+        <property name="border_width">10</property>
+        <property name="spacing">6</property>
         <child>
           <widget class="GtkHBox" id="hbox1">
             <property name="visible">True</property>
@@ -198,7 +199,7 @@ history store, as of </property>
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkButton" id="button1">
+                  <widget class="GtkButton" id="refresh_button">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="label">gtk-refresh</property>
@@ -232,65 +233,76 @@ history store, as of </property>
           </widget>
         </child>
         <child>
-          <widget class="GtkAlignment" id="alignment1">
+          <widget class="GtkHBox" id="hbox4">
             <property name="visible">True</property>
-            <property name="top_padding">12</property>
+            <property name="spacing">12</property>
             <child>
-              <widget class="GtkHBox" id="hbox4">
+              <placeholder/>
+            </child>
+            <child>
+              <widget class="GtkButton" id="viewfiles_button">
                 <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="response_id">0</property>
+                <signal name="clicked" handler="output_files"/>
                 <child>
-                  <widget class="GtkLabel" id="label5">
+                  <widget class="GtkHBox" id="hbox5">
                     <property name="visible">True</property>
-                  </widget>
-                </child>
-                <child>
-                  <widget class="GtkButton" id="viewfiles_button">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="response_id">0</property>
-                    <signal name="clicked" handler="output_files"/>
+                    <property name="border_width">2</property>
+                    <property name="spacing">6</property>
                     <child>
-                      <widget class="GtkHBox" id="hbox5">
+                      <widget class="GtkImage" id="image1">
                         <property name="visible">True</property>
-                        <property name="border_width">2</property>
-                        <property name="spacing">6</property>
-                        <child>
-                          <widget class="GtkImage" id="image1">
-                            <property name="visible">True</property>
-                            <property name="stock">gtk-open</property>
-                          </widget>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <widget class="GtkLabel" id="label6">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">View seleted files</property>
-                          </widget>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
+                        <property name="stock">gtk-open</property>
                       </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="label5">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">View seleted files</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
-                  </packing>
                 </child>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="pack_type">GTK_PACK_END</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkAlignment" id="alignment1">
+            <property name="visible">True</property>
+            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="top_padding">12</property>
+            <child>
+              <widget class="GtkProgressBar" id="progressbar">
+                <property name="visible">True</property>
+                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                <property name="text" translatable="yes"></property>
               </widget>
             </child>
           </widget>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </widget>

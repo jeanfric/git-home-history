@@ -59,6 +59,6 @@ install: all
 	@echo Add $(bindir) to your PATH
 
 clean:
-	rm -f *.xml *.1 *.html
+	rm -f *.xml *.1 *.html *.gladep *.gladep.bak *.glade.bak
 
 .PHONY: install uninstall clean all man1 man

@@ -48,6 +48,7 @@ class GHHRestorer(object):
         self.widgets.get_widget("hentry").set_value(time.localtime().tm_hour)
         self.widgets.get_widget("mentry").set_value(time.localtime().tm_min)
 
+        self.progress_source = None
         self.idle_id = None
         self.subprocess = None
         self.toggled_count = 0
@@ -66,8 +67,24 @@ class GHHRestorer(object):
                 self.widgets.get_widget("viewfiles_button").set_sensitive(True)
 
     def output_files(self, widget):
+        self.widgets.get_widget("viewfiles_button").set_sensitive(False)
+        self.widgets.get_widget("refresh_button").set_sensitive(False)
+
+        # get a local copy of things that may change on the UI
+        timespec_in_use = self.timespec_in_use
+        files = [x[1] for x in self.liststore if x[0] == True]
         outputdir = tempfile.mkdtemp()
-        for a in [x[1] for x in self.liststore if x[0] == True]:
+
+        self.widgets.get_widget("refresh_button").set_sensitive(True)
+
+        self.widgets.get_widget("progressbar").set_text("Extracting files")
+        self.widgets.get_widget("progressbar").set_fraction(0)
+
+        max = len(files)
+        count = 0
+        for a in files:
+            count = count + 1
+            self.widgets.get_widget("progressbar").set_fraction(count/max)
             outputfile = "%s/%s" % (outputdir, os.path.basename(a))
             if os.path.exists(outputfile):
                 outputfile = tempfile.mkstemp(prefix = "%s." % os.path.basename(a),
@@ -78,13 +95,21 @@ class GHHRestorer(object):
                                                 outputfile)
             print cmd
             subprocess.Popen(cmd, shell=True)
+
+        self.widgets.get_widget("progressbar").set_text("Opening file manager")
         subprocess.Popen("xdg-open %s" % outputdir, shell=True)
-        gtk.main_quit()
+        self.widgets.get_widget("progressbar").set_text("")
+        self.widgets.get_widget("progressbar").set_fraction(0)
+        self.widgets.get_widget("viewfiles_button").set_sensitive(True)
 
     def calendar_date_to_string(self):
         year, month, day = self.widgets.get_widget("calendar").get_date()
         mytime = time.mktime((year, month+1, day, 0, 0, 0, 0, 0, -1))
         return time.strftime("%F", time.localtime(mytime))
+
+    def pulse_progressbar(self):
+        self.widgets.get_widget("progressbar").pulse()
+        return True
 
     def stop_refresh_file_list(self):
         if self.subprocess != None and self.subprocess.poll() == None:
@@ -97,6 +122,10 @@ class GHHRestorer(object):
     def restart_refresh_file_list(self, widget):
         self.stop_refresh_file_list()
         self.liststore.clear()
+
+        self.progress_source = gobject.timeout_add(100, self.pulse_progressbar)
+        self.widgets.get_widget("progressbar").set_text("Refreshing file list")
+
         self.toggled_count = 0
         self.widgets.get_widget("viewfiles_button").set_sensitive(False)
         timespec = "%s %s:%s" % (self.calendar_date_to_string(),
@@ -123,6 +152,9 @@ class GHHRestorer(object):
                 self.liststore.append([False, line.strip()])
 
         if len(line) == 0 and self.subprocess.poll() != None:
+            gobject.source_remove(self.progress_source)
+            self.widgets.get_widget("progressbar").set_text("")
+            self.widgets.get_widget("progressbar").set_fraction(0)
             return False
         # not finished yet ...  call back please, until end of
         # consumption of child output

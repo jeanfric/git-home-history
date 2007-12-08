@@ -38,7 +38,6 @@ class GHHCommitDialog(object):
 
         self.widgets.get_widget("dialog").show_all()
         self.cmd_pid = None
-        print self.cmd_pid
         self.run_command_source = gobject.idle_add(self.run_command, "%s commit" % get_ghh())
 
     def _restore_normal_state(self):
@@ -67,11 +66,12 @@ class GHHCommitDialog(object):
 
         command = to_exec.split(' ')
         self.terminal.connect('child-exited', self.run_command_done)
-        #self.terminal.fork_command(command=command[0], argv=command)
-        self.cmd_pid = self.terminal.fork_command(command="yes", argv="yes")
+        self.cmd_pid = self.terminal.fork_command(command=command[0], argv=command)
+        #self.cmd_pid = self.terminal.fork_command(command="yes", argv="yes")
 
         # error from fork_command
-        if self.cmd_pid < 1:
+        if self.cmd_pid < 0:
+            print "fork exited with %s" % self.cmd_pid
             self.run_command_done(None)
 
     def run_command_done(self, widget):
