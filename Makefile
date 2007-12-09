@@ -24,7 +24,7 @@ MAN1_TXT= git-home-history.txt
 DOC_MAN1=$(patsubst %.txt,%.1,$(MAN1_TXT))
 DOC_HTML=$(patsubst %.txt,%.html,$(MAN1_TXT))
 
-all: git-home-history man
+all: man
 .DEFAULT: all
 
 # A convenient target for jfrichard to send the data
@@ -32,8 +32,11 @@ all: git-home-history man
 dist: www
 	./send-dist.sh
 
-www: html
+www: html www/changelog.txt
 	cp $(DOC_HTML) www
+
+www/changelog.txt:
+	git-log > $@
 
 man: man1
 man1: $(DOC_MAN1)
@@ -62,6 +65,6 @@ install: all
 	@echo Add $(bindir) to your PATH
 
 clean:
-	rm -f *.xml *.1 *.html *.gladep *.gladep.bak *.glade.bak
+	rm -f *.xml *.1 *.html *.gladep *.gladep.bak *.glade.bak *~
 
-.PHONY: install uninstall clean all man1 man
+.PHONY: install uninstall clean all man1 man www

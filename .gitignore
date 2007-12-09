@@ -1,3 +1,4 @@
+www/changelog.txt
 *.html
 !/www/*.html
 *~
