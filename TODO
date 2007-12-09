@@ -1,21 +1,27 @@
+Global
+------
+
+* Add a plumbing selector.  Would make it possible to provide scripts
+  that follow the same command-line options as 'git-home-history' but
+  store files differently (some rsync+hardlink tools or tape archivers
+  perhaps?)
+
+
 GTK front-end
 -------------
 
-* Add a proper .desktop entry that does the commit at login
-  (see the autostart toggle)
+* Change the calendar+time widgets for an F-Spot style slider
 
-* Add an option to drag and drop one or many files from the file list
-  to nautilus/konqueror targets.  Would call "g-h-h show <file> as of
-  <d>", where 'd' is the same date as of last calendar refresh.
+* Have a nice tree view that expands on folders, not a plain list
 
-* Add option to "commit now" in the frontend (and/or add a separate
-  "commit" dialog -- could be a handy shortcut on the panel, for
-  example)
+* Add indicators that show when the commits were made.  Restrict
+  selection to the commit date & times, instead of an open selection?
 
-* Add time selection, not only date selection
+* Add nautilus/konqueror/others extensions to directly retrieve old
+  versions in the filesystem browser
 
-Plumbings
----------
+Plumbings - git-home-history
+----------------------------
 
 * daemon that watches for file change with inotify and commits when
   reaching a given amount of file changes.  (_that_ could be started

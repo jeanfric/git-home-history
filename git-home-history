@@ -143,6 +143,10 @@ function init() {
 # e.g. linux-2.6/ will be entirely ignored if linux-2.6/.git exists.
 # Thus it is not necessary to add ".git" here.
 
+# Some editors use some special backup file formats.  Ignore them:
+##.#*
+##*~
+
 EOF
 
     git-add .gitignore
