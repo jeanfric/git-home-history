@@ -29,8 +29,11 @@ all: git-home-history man
 
 # A convenient target for jfrichard to send the data
 # to the webserver
-dist: all html
+dist: www
 	./send-dist.sh
+
+www: html
+	cp $(DOC_HTML) www
 
 man: man1
 man1: $(DOC_MAN1)
@@ -38,8 +41,8 @@ man1: $(DOC_MAN1)
 html: $(DOC_HTML)
 
 %.html : %.txt
-	a2x -f xhtml $<
-	rm -f $(patsubst %.txt,%.xml,$<)
+	asciidoc $<
+	sed -i 's|</body>|<script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script><script type="text/javascript">_uacct = "UA-541585-5";urchinTracker();</script></body>|' $@
 
 %.1 : %.txt
 	a2x -f manpage $<

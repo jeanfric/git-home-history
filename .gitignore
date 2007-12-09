@@ -1,6 +1,10 @@
+*.html
+!/www/*.html
+*~
+.#*
+#*#
 *.1
 *.xml
-*.html
 *.bak
 *.gladep
 /send-dist.sh

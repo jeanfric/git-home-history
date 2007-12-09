@@ -365,13 +365,8 @@ You can grab a copy of the project using Git:
 $ git-clone http://jean-francois.richard.name/ghh.git
 ------------
 
-For convenience, the script itself and its manpage in AsciiDoc format
-are available at
-http://jean-francois.richard.name/git-home-history[] and
-http://jean-francois.richard.name/git-home-history.txt[].
-
-These files might not be as up-to-date as the files in the Git
-repository.
+You can visit the website at http://jean-francois.richard.name/ghh/[]
+to stay updated on the development.
 
 DISCUSSION
 ----------
@@ -384,5 +379,4 @@ the mailing-list.
 AUTHORS
 -------
 
-Feel free to send any suggestions/patches to Jean-Francois Richard
-<mailto:jean-francois@richard.name[]>
+Jean-Francois Richard <mailto:jean-francois@richard.name[]>
