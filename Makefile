@@ -32,11 +32,9 @@ all: man
 dist: www
 	./send-dist.sh
 
-www: html www/changelog.txt
+www: html
 	cp $(DOC_HTML) www
-
-www/changelog.txt:
-	git-log > $@
+	git-log > www/changelog.txt
 
 man: man1
 man1: $(DOC_MAN1)
