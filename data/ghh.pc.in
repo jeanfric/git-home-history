@@ -1,0 +1,8 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+
+Name: ghh Handlers Location
+Description: Providing the location of ghh system-wide handlers.
+Requires: pygtk-2.0
+Version: @VERSION@

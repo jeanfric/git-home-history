@@ -8,4 +8,25 @@ www/changelog.txt
 *.xml
 *.bak
 *.gladep
+
+# The autotools stuff... what a pollution!
+Makefile
+Makefile.in
+/ltmain.sh
 /send-dist.sh
+/mkinstalldirs
+/missing
+/m4/*
+/intltool-*
+/install-sh
+/gnome-doc-utils.make
+/depcomp
+/configure
+/config.sub
+/config.h.in
+/config.guess
+/aclocal.m4
+/acinclude.m4
+/py-compile
+/po/stamp-it
+/po/POTFILES
