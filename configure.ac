@@ -87,4 +87,4 @@ echo $PACKAGE v$VERSION
 echo
 echo Prefix............... : $prefix
 echo
-echo
+
