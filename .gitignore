@@ -26,7 +26,14 @@ Makefile.in
 /config.h.in
 /config.guess
 /aclocal.m4
-/acinclude.m4
 /py-compile
 /po/stamp-it
 /po/POTFILES
+/autom4te.cache
+/config.h
+/config.log
+/config.status
+/data/ghh.pc
+/libtool
+/stamp-*
+/ui/defs.py
