@@ -44,16 +44,11 @@ def daemonize():
 
 
 class GHH(dbus.service.Object):
-    def __init__(self, bus, object_path, log):
-        self.log = log
-        dbus.service.Object.__init__(self, bus, object_path)
 
     @dbus.service.method(dbus_interface = 'org.gnome.ghh.Test',
                          in_signature = '', out_signature = 'i')
     def get_version(self):
         # TODO : will need to use defs.py from the GHH package!
-        self.log.write("get_version")
-        self.log.flush
         return 1
 
     @dbus.service.method(dbus_interface = 'org.gnome.ghh.Test',
@@ -61,8 +56,6 @@ class GHH(dbus.service.Object):
     def list_revision_dates_of_file(self, path):
         """Receive a "path/to/file", return an array of seconds from 1970
         corresponding to all known revisions dates of the particular file"""
-        self.log.write("list_revision_dates_of_file")
-        self.log.flush
         return ['1', '2']
 
     @dbus.service.method(dbus_interface = 'org.gnome.ghh.Test',
@@ -70,22 +63,18 @@ class GHH(dbus.service.Object):
     def get_latest_revision_date_of_file(self, path):
         """Receive a "path/to/file", return the most recent revision stored in
         the history store"""
-        self.log.write("get_latest_revision_date_of_file")
-        self.log.flush
         return 1121212
 
     @dbus.service.method(dbus_interface = 'org.gnome.ghh.Test',
-                         in_signature = 'a{st}', out_signature = 's')
-    def get_file_at_revision_date(self, mapping):
+                         in_signature = 'st', out_signature = 's')
+    def get_file_at_revision_date(self, file, time):
         """Receive a { "path/to/file" : "seconds from 1970" }, return a path
         to that (freshly uncompressed) file, as of the given revision date"""
-        self.log.write("get_file_at_revision_date")
-        self.log.flush
         return str("/tmp/patate")
 
 
 if __name__ == "__main__":
-    ret = daemonize()
+#    ret = daemonize()
 
     logfile_path = os.path.expanduser("~/.ghh-service.log")
     log = open(logfile_path, "w")
