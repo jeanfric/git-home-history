@@ -1,4 +1,4 @@
-SUBDIRS = src lib dbus ui
+SUBDIRS = src lib dbus ui data
 
 DISTCHECK_CONFIGURE_FLAGS = --disable-scrollkeeper
 
