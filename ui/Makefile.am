@@ -17,17 +17,5 @@ BUILT_SOURCES = \
 	gtk-ghh-restore \
 	gtk-ghh
 
-ghhdir = $(pythondir)/deskbar
-ghh_PYTHON = \
-	defs.py \
-	__init__.py
-
-EXTRA_DIST = \
-        defs.py.in
-
 CLEANFILES = \
 	$(BUILT_SOURCES)
-
-DISTCLEANFILES = \
-	defs.py \
-	$(CLEANFILES)

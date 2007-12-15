@@ -16,7 +16,6 @@ Makefile.in
 /send-dist.sh
 /mkinstalldirs
 /missing
-/m4/*
 /intltool-*
 /install-sh
 /gnome-doc-utils.make
@@ -27,13 +26,14 @@ Makefile.in
 /config.guess
 /aclocal.m4
 /py-compile
-/po/stamp-it
-/po/POTFILES
+/libtool
+/stamp-*
 /autom4te.cache
 /config.h
 /config.log
 /config.status
 /data/ghh.pc
-/libtool
-/stamp-*
-/ui/defs.py
+/lib/defs.py
+/po/stamp-it
+/po/POTFILES
+/m4/*
