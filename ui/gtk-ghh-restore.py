@@ -104,7 +104,9 @@ class GHHRestorer(object):
             self.widgets.get_widget("progressbar").set_fraction(count/max)
             outputfile = "%s/%s" % (outputdir, os.path.basename(a))
             if os.path.exists(outputfile):
-                outputfile = tempfile.mkstemp(prefix = "%s." % os.path.basename(a),
+                # try to keep the same suffix as the original, for
+                # easy finding of the file type
+                outputfile = tempfile.mkstemp(suffix = ".%s" % os.path.basename(a),
                                               dir=outputdir)[1]
             cmd = "%s show %s as of %s > %s" % (get_ghh(),
                                                 a,

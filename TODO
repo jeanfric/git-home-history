@@ -1,11 +1,20 @@
 Global
 ------
 
+* daemon that watches for file change with inotify and commits when
+  reaching a given amount of file changes.  (_that_ could be started
+  at session startup, instead of a one-shot git-home-history commit)
+
 * Add a plumbing selector.  Would make it possible to provide scripts
   that follow the same command-line options as 'git-home-history' but
   store files differently (some rsync+hardlink tools or tape archivers
   perhaps?)
 
+* Script should use the full path of "git" (autotools should set it
+  somehow in a ".in").
+
+* Use the "git" tool, not the dashed git subtools (git-checkout,
+  git-blah)
 
 GTK front-end
 -------------
@@ -17,19 +26,42 @@ GTK front-end
 * Add indicators that show when the commits were made.  Restrict
   selection to the commit date & times, instead of an open selection?
 
+Third-party integration
+-----------------------
+
 * Add nautilus/konqueror/others extensions to directly retrieve old
-  versions in the filesystem browser
+  versions in the filesystem browser (with the DBus service)
 
-Plumbings - git-home-history
-----------------------------
+* Provide an example menu in, say, gedit (with the DBus service)
 
-* daemon that watches for file change with inotify and commits when
-  reaching a given amount of file changes.  (_that_ could be started
-  at session startup)
+   File
+   +----
+   | ...                                +----
+   | Open old revisions of this file => | Wed dec 12  9h30
+   | ...                                | Tue Nov 14 12h30
+                                        |
+
+
+DBus service
+------------
+
+* Multi-thread it... long operations, like extracting a file, should
+  be done in a separate thread or process
+
+* Cache results, since git has an immutable history, it is presumably
+  safe to never expire the cache (except maybe for memory usage
+  considerations).  The cache could be pickled/unpickled.
+
+
+git-home-history script
+-----------------------
+
+* Make it unbreakable: check for escaping, space-in-filename
+  handling...
 
 * add "ghh give <dir_or_file> into <dir> [as of <timespec>]": get the
-  dir_or_file checked out to a directory check if directory exists.
-  if so tell user to move it, then checkout
+  dir_or_file checked out to a directory.  Check if directory exists.
+  if so tell user to move it, then checkout there.
 
 * add a test script that would, in a test home directory, flex most of
   the options of git-home-history and report errors.  to be run before
