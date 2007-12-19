@@ -16,6 +16,7 @@
 # along with this program.  If not, see
 # <http://www.gnu.org/licenses/>.
 
+import ghh
 
 import gobject
 import gtk
@@ -28,14 +29,10 @@ import subprocess
 import sys
 import vte
 
-def get_ghh():
-    if os.path.exists("./git-home-history"):
-        return os.path.abspath("./git-home-history")
-    return "git-home-history"
-
 class GHHCommitDialog(object):
     def __init__(self):
-        self.glade_file = "gtk-ghh-commit.glade"
+        self.glade_file = os.path.join(ghh.defs.DATA_DIR,
+                                       "ghh/glade/gtk-ghh-commit.glade")
         self.widgets = gtk.glade.XML(self.glade_file)
         signal_handlers = {
             "gtk_main_quit" : gtk.main_quit,
@@ -55,7 +52,10 @@ class GHHCommitDialog(object):
 
         self.widgets.get_widget("dialog").show_all()
         self.cmd_pid = None
-        self.run_command_source = gobject.idle_add(self.run_command, "%s commit" % get_ghh())
+        self.run_command_source = gobject.idle_add(self.run_command,
+                                                   "%s commit" %
+                                                   os.path.join(ghh.defs.BIN_DIR,
+                                                                "git-home-history"))
 
     def _restore_normal_state(self):
         self.widgets.get_widget("stop_button").set_sensitive(False)
@@ -99,5 +99,6 @@ def main():
     gtk.main()
 
 if __name__ == "__main__":
+    os.chdir(os.path.expanduser('~'))
     g = GHHCommitDialog()
     main()

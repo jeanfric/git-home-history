@@ -16,6 +16,7 @@
 # along with this program.  If not, see
 # <http://www.gnu.org/licenses/>.
 
+import ghh
 
 import gobject
 import gtk
@@ -27,14 +28,10 @@ import subprocess
 import sys
 import vte
 
-def get_ghh():
-    if os.path.exists("./git-home-history"):
-        return os.path.abspath("./git-home-history")
-    return "git-home-history"
-
 class GHHDialog(object):
     def __init__(self):
-        self.glade_file = "gtk-ghh.glade"
+        self.glade_file = os.path.join(ghh.defs.DATA_DIR,
+                                       "ghh/glade/gtk-ghh.glade")
         self.widgets = gtk.glade.XML(self.glade_file)
         signal_handlers = {
             "gtk_main_quit" : gtk.main_quit,
@@ -46,7 +43,8 @@ class GHHDialog(object):
         self.widgets.signal_autoconnect(signal_handlers)
         # we don't want to know.
         # no.    don't try.     no.
-        subprocess.Popen("%s init" % get_ghh(),
+        subprocess.Popen("%s init" % os.path.join(ghh.defs.BIN_DIR,
+                                                  "git-home-history"),
                          shell=True,
                          stdout=open('/dev/null', 'w'),
                          stderr=open('/dev/null', 'w'))
@@ -63,10 +61,12 @@ class GHHDialog(object):
             Autostart().remove()
 
     def run_restore(self, widget):
-        subprocess.Popen("./gtk-ghh-restore.py", shell=True)
+        subprocess.Popen(os.path.join(ghh.defs.BIN_DIR, "gtk-ghh-restore"),
+                         shell=True)
 
     def run_commit(self, widget):
-        subprocess.Popen("./gtk-ghh-commit.py", shell=True)
+        subprocess.Popen(os.path.join(ghh.defs.BIN_DIR, "gtk-ghh-commit"),
+                         shell=True)
 
 class Autostart(object):
     def __init__(self):
@@ -100,7 +100,7 @@ Type=Application
 Name=git-home-history
 TryExec=%(p)s
 Exec=nice %(p)s private--init-and-commit
-""" % {"p" : get_ghh() })
+""" % {"p" : os.path.join(ghh.defs.BIN_DIR, "git-home-history") })
             f.close()
         except:
             pass

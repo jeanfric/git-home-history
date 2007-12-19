@@ -16,6 +16,7 @@
 # along with this program.  If not, see
 # <http://www.gnu.org/licenses/>.
 
+import ghh
 
 import gobject
 import gtk
@@ -28,14 +29,10 @@ import sys
 import tempfile
 import time
 
-def get_ghh():
-    if os.path.exists("./git-home-history"):
-        return os.path.abspath("./git-home-history")
-    return "git-home-history"
-
 class GHHRestorer(object):
     def __init__(self):
-        self.glade_file = "gtk-ghh-restore.glade"
+        self.glade_file = os.path.join(ghh.defs.DATA_DIR,
+                                       "ghh/glade/gtk-ghh-restore.glade")
         self.widgets = gtk.glade.XML(self.glade_file)
         signal_handlers = {
             "gtk_main_quit" : gtk.main_quit,
@@ -103,12 +100,13 @@ class GHHRestorer(object):
             count = count + 1
             self.widgets.get_widget("progressbar").set_fraction(count/max)
             outputfile = "%s/%s" % (outputdir, os.path.basename(a))
-            if os.path.exists(outputfile):
-                # try to keep the same suffix as the original, for
-                # easy finding of the file type
-                outputfile = tempfile.mkstemp(suffix = ".%s" % os.path.basename(a),
+            #if os.path.exists(outputfile):
+            # try to keep the same suffix as the original, for
+            # easy finding of the file type
+            outputfile = tempfile.mkstemp(suffix = ".%s" % os.path.basename(a),
                                               dir=outputdir)[1]
-            cmd = "%s show %s as of %s > %s" % (get_ghh(),
+            cmd = "%s show %s as of %s > %s" % (os.path.join(ghh.defs.BIN_DIR,
+                                                             "git-home-history"),
                                                 a,
                                                 self.timespec_in_use,
                                                 outputfile)
@@ -157,9 +155,13 @@ class GHHRestorer(object):
 
     def refresh_file_list(self, timespec):
         if self.subprocess == None:
-            print "%s ls-stored-files as of %s" % (get_ghh(), timespec)
+            print "%s ls-stored-files as of %s" % (os.path.join(ghh.defs.BIN_DIR,
+                                                                "git-home-history"),
+                                                   timespec)
             self.subprocess = subprocess.Popen(
-                "%s ls-stored-files as of %s" % (get_ghh(), timespec),
+                "%s ls-stored-files as of %s" % (os.path.join(ghh.defs.BIN_DIR,
+                                                              "git-home-history"),
+                                                 timespec),
                 shell=True,
                 stdout=subprocess.PIPE,
                 close_fds=True)
