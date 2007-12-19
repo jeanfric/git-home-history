@@ -1,0 +1,24 @@
+Normal installation
+===================
+
+To install this package, simply run:
+
+$ ./autogen.sh
+$ make
+$ make install
+
+
+Developing
+==========
+
+Developers might be interested in installing in a prefix in their home
+directory and setting the PYTHON_PATH to point to it.
+
+For example:
+
+$ ./autogen --prefix=/home/richard/ghhprefix
+$ make
+$ make install
+$ PYTHONPATH=/home/richard/ghhprefix/lib/python2.5/site-packages:$PYTHONPATH \
+      ./gtk-ghh-restore.py
+
