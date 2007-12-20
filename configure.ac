@@ -1,5 +1,5 @@
 AC_INIT(ghh, 0.1, jean-francois@richard.name)
-AC_CONFIG_SRCDIR(src/git-home-history)
+AC_CONFIG_SRCDIR(lib/__init__.py)
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -40,30 +40,17 @@ dnl ****************************************************************************
 AC_PATH_PROG(GIT, git)
 
 dnl ****************************************************************************
+dnl * Asciidoc's a2x
+dnl ****************************************************************************
+AC_PATH_PROG(A2X, a2x)
+
+dnl ****************************************************************************
 dnl * Python 2.4
 dnl ****************************************************************************
 AM_PATH_PYTHON(2.4)
 
 dnl ****************************************************************************
-dnl * Write the values of various paths in defs.py
-dnl ****************************************************************************
-AC_SUBST(VERSION)
-AC_SUBST(PACKAGE)
-
-AS_AC_EXPAND(DATADIR, $datarootdir)
-AC_SUBST(DATADIR)
-
-AS_AC_EXPAND(LIBDIR, $libdir)
-AC_SUBST(LIBDIR)
-
-AS_AC_EXPAND(BINDIR, $bindir)
-AC_SUBST(BINDIR)
-
-AS_AC_EXPAND(PYTHONDIR, $pythondir)
-AC_SUBST(PYTHONDIR)
-
-dnl ****************************************************************************
-dnl * PyGTK & co for Gnome Streamer
+dnl * Gnome libs we need
 dnl ****************************************************************************
 PKG_CHECK_MODULES(GHH,
 	gtk+-2.0			>= 2.12
@@ -72,10 +59,29 @@ PKG_CHECK_MODULES(GHH,
 )
 
 dnl ****************************************************************************
+dnl * Write the values of various paths in variables
+dnl ****************************************************************************
+AC_SUBST(VERSION)
+AC_SUBST(PACKAGE)
+
+AS_AC_EXPAND(EXPANDED_DATADIR, "$datarootdir")
+AC_SUBST(EXPANDED_DATADIR)
+
+AS_AC_EXPAND(EXPANDED_LIBDIR, "$libdir")
+AC_SUBST(EXPANDED_LIBDIR)
+
+AS_AC_EXPAND(EXPANDED_BINDIR, "$bindir")
+AC_SUBST(EXPANDED_BINDIR)
+
+AS_AC_EXPAND(EXPANDED_MANDIR, "$mandir")
+AC_SUBST(EXPANDED_MANDIR)
+
+dnl ****************************************************************************
 dnl * --------------------------------------------------------------------------
 dnl ****************************************************************************
 AC_OUTPUT([
 Makefile
+src/git-home-history
 src/Makefile
 lib/Makefile
 lib/defs.py
@@ -83,6 +89,7 @@ dbus/Makefile
 ui/Makefile
 data/ghh.pc
 data/Makefile
+doc/Makefile
 po/Makefile.in
 ])
 

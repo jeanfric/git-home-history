@@ -23,6 +23,9 @@ if ! which git &>/dev/null; then
     exit 1
 fi
 
+# Autotools defines
+MANDIR="@EXPANDED_MANDIR@"
+
 SCRIPT_NAME=$(basename $0)
 ORIG_DIR="$( pwd )"
 # Remember that all actions here are to be made in $HOME dir!
@@ -399,12 +402,21 @@ case "$1" in
 	ls_stored_files $@
 	;;
     --help|-h|help)
-	if test -e "$ORIG_DIR/git-home-history.1"; then
-	    man "$ORIG_DIR/git-home-history.1"
-	elif test -e "$ORIG_DIR/git-home-history.txt"; then
-	    less "$ORIG_DIR/git-home-history.txt"
-	else
+	manfile="${SCRIPT_NAME}.1"
+
+	found=
+	for t in "$MANDIR/man1/$manfile" "$ORIG_DIR/git-home-history.1"; do
+	    if test -e "$t"; then
+		man $t
+		found=1
+		break
+	    fi
+	done
+	if test -z "$found"; then
 	    man git-home-history
+	    if test "$?" != "0"; then
+		echo "Could not find manpage" >&2
+	    fi
 	fi
 	;;
     *)
