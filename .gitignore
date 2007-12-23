@@ -36,4 +36,4 @@ Makefile.in
 /lib/defs.py
 /po/stamp-it
 /po/POTFILES
-/m4/*
+/src/git-home-history
