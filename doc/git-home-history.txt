@@ -72,20 +72,6 @@ git-home-history archive-to - \
     | ssh me@remote 'cat > home-machineA.git.tar.gpg'
 ------------
 --
-archive-to <file>::
-
-       Outputs a GPG-ed TAR (with suggested extension: .git.tar.gpg)
-       to <file>. Note that <file> can be '-' to send to stdout. The
-       archive is encrypted symmetrically with a password.
-+
---
-Example:
-------------
-git-home-history archive-to /tmp/home-at-machineX.git.tar.gpg
-git-home-history archive-to - \
-    | ssh me@remote 'cat > home-machineA.git.tar.gpg'
-------------
---
 
 eat <file_or_dir>::
 
@@ -142,32 +128,14 @@ ignore from your home directory.  Once this is done, you simply have
 to run `git-home-history commit` whenever you want to store the
 current state of your home directory in your Git history store.
 
-First, get the script:
-
-------------
-# Go back to home
-$ cd ~
-
-# Download the script
-$ wget http://jean-francois.richard.name/git-home-history
-# Have a look, to make sure everything is OK!
-$ less git-home-history
-#!/bin/bash
-# [...]
-
-# Make it executable
-$ chmod +x git-home-history
-------------
-
 Initializing and doing a first commit is done like this:
 
 ------------
 # Go back to home
 $ cd ~
 
-# Ok, let's use it!
 # First, create the needed files (in fact, '.git/' and '.gitignore')
-$ ./git-home-history init
+$ git-home-history init
 
 # The script wants us to edit the .gitignore
 # This is an important step to tell what will *not* be
@@ -175,11 +143,11 @@ $ ./git-home-history init
 $ nano .gitignore
 
 # Check what will be ignored
-$ ./git-home-history ls-ignored-files
+$ git-home-history ls-ignored-files
 
 # Then we make the first commit, which can be a long operation
 # depending on the size of your home directory
-$ ./git-home-history commit
+$ git-home-history commit
 # ...very long...
 # ...zzz...
 # Do not worry, the next commits will be blazingly fast!
@@ -191,25 +159,22 @@ commit` wherever you are in the filesystem.
 Example:
 
 ------------
-# (In this example we assume the script 'git-home-history' is stored
-# directly under your home directory)
-
 $ cd mywork/blabla/
 $ touch testing-testing-mic-check
 
 # Commit the current state!
-$ ~/git-home-history commit
+$ git-home-history commit
 
 $ cd ~/my-other-thing-to-do/
 $ touch po-tah-to
 $ mv po-tah-to po-tey-to
 
 # Commit the current state!
-$ ~/git-home-history commit
+$ git-home-history commit
 
 # Now you can examine the changes by doing
 $ cd ~
-$ git-log
+$ git log
 # -or, visually-
 $ gitk
 ------------
@@ -233,29 +198,28 @@ $ cd ~
 $ ssh myname@remotemachine.net \
     'GIT_DIR=bak-from-machineA.git git-init'
 
-# The following sets up a Git 'remote' shortcut
-# See 'man git-push' for more details on remotes and URL formats
+# The following sets up a Git 'remote' shortcut.  See 'git help push'
+# for more details on remotes and URL formats
 $ nano .git/remotes/remotemachine.net
 
 # Add this to your 'remotemachine.net' file :
 URL: ssh://myname@remotemachine.net/~myname/bak-from-machineA
 Push: master:master
 
-
 # Now, everytime you whish to copy your history to the
 # 'remotemachine.net' remote repository, simply run
 $ cd ~
-$ git-push remotemachine.net
+$ git push remotemachine.net
 ------------
 
-Whenever you `git-push`, all the previous commits and associated files
+Whenever you `git push`, all the previous commits and associated files
 will be copied to the remote place.  Remember to run `git-home-history
 commit` before pushing to a remote backup repository if you want the
 current state of your home directory to be sent as well.
 
 You can set up multiple remotes and use different transfer schemes
 (HTTP, HTTPS, rsync, etc.) depending on your particular needs.  See
-the `git-push` man page for more information.
+the `git push` help page for more information.
 
 
 STORING HISTORY ON LOCALLY MOUNTED REMOTE DIRECTORY
@@ -263,12 +227,13 @@ STORING HISTORY ON LOCALLY MOUNTED REMOTE DIRECTORY
 
 Since Git stores its data in your home directory, under '.git', you
 can simply mount a remote filesystem as '.git' (or symlink to a remote
-mount) before initializing the histories.  This will effectively store
-the data on the remote filesystem/device (make sure you know and trust
-the remote host since it will store all your personal data).
+mount) before initializing the history store.  This will effectively
+store the data on the remote filesystem/device (make sure you *know
+and trust* the remote host since it will store all your personal
+data).
 
-This technique is useful if you do not have sufficient space to
-store your history locally.
+This technique is useful if you do not have sufficient space to store
+your history locally.
 
 Example:
 
@@ -289,8 +254,6 @@ $ ln -s /media/disk/bak-machineA.git .git
 ------------
 
 
-
-
 CLEANING UP THE PAST
 --------------------
 
@@ -301,15 +264,15 @@ You can remove commits that were made before a certain date by using
 such commands:
 
 ------------
-$ ./git-home-history rm-older-than yesterday
-$ ./git-home-history rm-older-than 1 month ago
-$ ./git-home-history rm-older-than 1 month 2 weeks 3 days 1 hour 1 second ago
-$ ./git-home-history rm-older-than 1979-02-26 18:30:00
+$ git-home-history rm-older-than yesterday
+$ git-home-history rm-older-than 1 month ago
+$ git-home-history rm-older-than 1 month 2 weeks 3 days 1 hour 1 second ago
+$ git-home-history rm-older-than 1979-02-26 18:30:00
 ------------
 
 This will rewrite the history of commits and may change objects in
 your repository.  If you were syncing with git tools (such as
-`git-push`), you will probably have to remove the remote repository
+`git push`), you will probably have to remove the remote repository
 and re initialize it.  Really, use at your own risks (for now).
 
 
@@ -319,7 +282,7 @@ STARTING ANEW
 You can delete all your previous commits by issuing:
 
 ------------
-$ ./git-home-history rm-all
+$ git-home-history rm-all
 ------------
 
 
@@ -337,7 +300,7 @@ $ crontab -e
 # 'git-home-history commit' every 2 hours.
 # You can make sure it is working by doing (in 2 hours +)
 $ cd ~
-$ git-log
+$ git log
 ------------
 
 PRESERVING PERMISSIONS
@@ -362,7 +325,7 @@ DOWNLOADS AND UPDATES
 You can grab a copy of the project using Git:
 
 ------------
-$ git-clone http://jean-francois.richard.name/ghh.git
+$ git clone http://jean-francois.richard.name/ghh.git
 ------------
 
 You can visit the website at http://jean-francois.richard.name/ghh/[]
