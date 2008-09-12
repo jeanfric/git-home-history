@@ -191,13 +191,17 @@ function commit {
     # removing previously-tracked newly-ignored files...
     # :(  help me! ahhhhrrrggg
     # seems like the only way to stop tracking newly-ignored files
-    if git ls-files -m .gitignore | egrep -q '^.gitignore$'; then
+    if git ls-files --modified .gitignore | egrep -q '^.gitignore$'; then
+	# remove files from the index only, *not the files themselves*
 	git-rm --cached -r -f . >/dev/null
     fi
     git add -v . \
 	|| die "Could not complete addition of files to history store!"
-    test -n "$@" || modifier="-a"
-    git commit -a $modifier -m"Committed on $( date -R )" -- "$@"
+
+    # No argument given, then use "-a" to commit all.  Else commit only passed
+    # filenames
+    test "$#" = "0" && modifier="-a"
+    git commit $modifier -m"Committed on $( date -R )" -- "$@"
     git gc --auto || git gc # the --auto is on newer versions
 }
 
@@ -205,12 +209,6 @@ function commit {
 function rm_older_than {
     __abort_on_not_initialized
     local time_spec="$*"
-
-    if ! which git filter-branch &>/dev/null; then
-	echo "Please install a recent version of Git" >&2
-	echo "See http://git.or.cz for more information about Git" >&2
-	exit 1
-    fi
 
     if test "$(git rev-parse "HEAD@{$time_spec}")" = "$(git rev-parse HEAD)"; then
 	local TMOUT=20
