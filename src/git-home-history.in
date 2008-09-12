@@ -197,7 +197,7 @@ function commit {
     git add -v . \
 	|| die "Could not complete addition of files to history store!"
     test -n "$@" || modifier="-a"
-    git commit $modifier -m"Committed on $( date -R )" -- "$@"
+    git commit -a $modifier -m"Committed on $( date -R )" -- "$@"
     git gc --auto || git gc # the --auto is on newer versions
 }
 
@@ -212,7 +212,7 @@ function rm_older_than {
 	exit 1
     fi
 
-    if test "$(git rev-parse \"HEAD@{$time_spec}\")" = "$(git rev-parse HEAD)"; then
+    if test "$(git rev-parse "HEAD@{$time_spec}")" = "$(git rev-parse HEAD)"; then
 	local TMOUT=20
 	echo "You are about to remove *all* commits made before the very last one you made"
 	echo "Press enter or wait 20 seconds to confirm.  Abort with CRTL-C."
@@ -221,7 +221,7 @@ function rm_older_than {
 
     # Something like that
     if ! git filter-branch --parent-filter \
-	'test "$(git rev-parse \"HEAD@{$time_spec}\")" = "$GIT_COMMIT" || cat ' \
+	'test "$(git rev-parse "HEAD@{$time_spec}")" = "$GIT_COMMIT" || cat ' \
 	HEAD;
     then
 	die "Please make sure you did '$SCRIPT_NAME commit' before removing old files."
