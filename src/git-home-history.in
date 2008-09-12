@@ -82,7 +82,7 @@ function init {
     __abort_on_initialized
 
     # I know it's the default... but let's be explicit!
-    git-init --shared=umask
+    git init --shared=umask
     chmod -R u+rwX,go-rwx .git
 
     # Add a gitweb description
@@ -159,8 +159,8 @@ function init {
 
 EOF
 
-    git-add .gitignore
-    git-commit -q -a -m"Initialized by $SCRIPT_NAME"
+    git add .gitignore
+    git commit -q -a -m"Initialized by $SCRIPT_NAME"
     echo
     echo "You might be interested in tweaking the ~/.gitignore file"
     echo
@@ -191,14 +191,14 @@ function commit {
     # removing previously-tracked newly-ignored files...
     # :(  help me! ahhhhrrrggg
     # seems like the only way to stop tracking newly-ignored files
-    if git-ls-files -m .gitignore | egrep -q '^.gitignore$'; then
+    if git ls-files -m .gitignore | egrep -q '^.gitignore$'; then
 	git-rm --cached -r -f . >/dev/null
     fi
-    git-add -v . \
+    git add -v . \
 	|| die "Could not complete addition of files to history store!"
     test -n "$@" || modifier="-a"
-    git-commit $modifier -m"Committed on $( date -R )" -- "$@"
-    git-gc --auto || git-gc # the --auto is on newer versions
+    git commit $modifier -m"Committed on $( date -R )" -- "$@"
+    git gc --auto || git gc # the --auto is on newer versions
 }
 
 
@@ -206,13 +206,13 @@ function rm_older_than {
     __abort_on_not_initialized
     local time_spec="$*"
 
-    if ! which git-filter-branch &>/dev/null; then
+    if ! which git filter-branch &>/dev/null; then
 	echo "Please install a recent version of Git" >&2
 	echo "See http://git.or.cz for more information about Git" >&2
 	exit 1
     fi
 
-    if test "$(git-rev-parse \"HEAD@{$time_spec}\")" = "$(git-rev-parse HEAD)"; then
+    if test "$(git rev-parse \"HEAD@{$time_spec}\")" = "$(git rev-parse HEAD)"; then
 	local TMOUT=20
 	echo "You are about to remove *all* commits made before the very last one you made"
 	echo "Press enter or wait 20 seconds to confirm.  Abort with CRTL-C."
@@ -220,15 +220,15 @@ function rm_older_than {
     fi
 
     # Something like that
-    if ! git-filter-branch --parent-filter \
-	'test "$(git-rev-parse \"HEAD@{$time_spec}\")" = "$GIT_COMMIT" || cat ' \
+    if ! git filter-branch --parent-filter \
+	'test "$(git rev-parse \"HEAD@{$time_spec}\")" = "$GIT_COMMIT" || cat ' \
 	HEAD;
     then
 	die "Please make sure you did '$SCRIPT_NAME commit' before removing old files."
     fi
 
     # See git mailing list
-    # "Trying to use git-filter-branch to compress history by removing
+    # "Trying to use git filter-branch to compress history by removing
     # large, obsolete binary files"
 
     git reset --soft # was '--hard' on the post...
@@ -236,7 +236,7 @@ function rm_older_than {
     #vi .git/packed-refs # Use vi to remove the line referring to
     # refs/original...  No need since we have linear, no tags, nothing
     # special
-    git-reflog expire --all --expire-unreachable=0
+    git reflog expire --all --expire-unreachable=0
 
     echo "Committing the removal action"
 
@@ -250,7 +250,7 @@ function rm_older_than {
     git commit -m"$msg" "$witness_file"
 
     # Finally make sure everything is ok, and remove old stuff
-    git-gc --prune
+    git gc --prune
 }
 
 
@@ -264,7 +264,7 @@ function show {
     local time_spec="$*"
 
     echo "Showing: $HOME/$file_to_restore" >&2
-    GIT_PAGER=cat git-show "HEAD@{'$time_spec'}:$file_to_restore"
+    GIT_PAGER=cat git show "HEAD@{'$time_spec'}:$file_to_restore"
 }
 
 function archive_to {
@@ -303,7 +303,7 @@ function extract_archive_to {
     echo
     echo "You can check what files are inside the newly unpacked directory with"
     echo "GIT_DIR=\"$archive\" gitk"
-    echo "GIT_DIR=\"$archive\" git-home-history ls-stored-files"
+    echo "GIT_DIR=\"$archive\" git home-history ls-stored-files"
 
     popd >/dev/null
 }
@@ -315,18 +315,18 @@ function ls_stored_files {
 	shift # as
 	shift # of
 	local time_spec="$*"
-	git-ls-tree -r --name-only "HEAD@{$time_spec}"
+	git ls-tree -r --name-only "HEAD@{$time_spec}"
     else
-	git-ls-tree -r --name-only HEAD
+	git ls-tree -r --name-only HEAD
     fi
 }
 
 function eat {
     __abort_on_not_initialized
 
-    git-add -v -- "$@" || die "Could not add '$@' to the history store"
+    git add -v -- "$@" || die "Could not add '$@' to the history store"
     commit "$@"
-    git-rm -r -f -- "$@" || die "Problem removing $@"
+    git rm -r -f -- "$@" || die "Problem removing $@"
     rm -rf -- "$@" # some empty dirs may remain. clean'em up
     commit "$@"
 }
@@ -396,12 +396,12 @@ case "$1" in
 	;;
     ls-uncommitted-files)
 	echo "These files are not yet stored:" >&2
-	git-ls-files --exclude-from=.gitignore -o --directory
+	git ls-files --exclude-from=.gitignore -o --directory
 	echo "Use '$SCRIPT_NAME commit' to store them" >&2
 	;;
     ls-ignored-files)
 	echo "Since the last commit, these files are ignored:" >&2
-	git-ls-files --exclude-from=.gitignore -i -o --directory
+	git ls-files --exclude-from=.gitignore -i -o --directory
 	;;
     ls-stored-files)
 	shift
