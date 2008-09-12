@@ -16,6 +16,13 @@
 # along with this program.  If not, see
 # <http://www.gnu.org/licenses/>.
 
+# Utility functions, mainly to use bash built-ins for common
+# operations instead of relying on forking subprocesses.  We keep the
+# well-known names for readability.
+function which { type -P "$1"; return $?; }
+function basename { echo "${1##*/}"; }
+
+
 
 if ! which git &>/dev/null; then
     echo "Please Git" >&2
@@ -27,7 +34,7 @@ fi
 MANDIR="@EXPANDED_MANDIR@"
 
 SCRIPT_NAME=$(basename $0)
-ORIG_DIR="$( pwd )"
+ORIG_DIR="$PWD"
 # Remember that all actions here are to be made in $HOME dir!
 cd ~
 
@@ -39,12 +46,13 @@ umask 077
 # mounted/linked .git from somewhere else.  Failing on just '-e
 # .git' would make it impossible to have the first commit save its
 # data to a remote mount.  (Since .git has to exist, as a mountpoint)
-function __has_initialized(){
+function __has_initialized {
     test -e .git/objects -o -e .gitignore;
     return $?
 }
 
-function __abort_on_initialized() {
+
+function __abort_on_initialized {
     if __has_initialized; then
 	echo "You already have git data in your home directory." >&2
 	echo "Please use '$SCRIPT_NAME rm-all' if you wish to *delete* it." >&2
@@ -52,7 +60,7 @@ function __abort_on_initialized() {
     fi
 }
 
-function __abort_on_not_initialized() {
+function __abort_on_not_initialized {
     if ! __has_initialized; then
 	echo "You probably did not initialize your home history repository" >&2
 	echo "Please use  '$SCRIPT_NAME init' to initialize it" >&2
@@ -63,15 +71,14 @@ function __abort_on_not_initialized() {
     require_work_tree
 }
 
-function __abort_on_no_gpg() {
+function __abort_on_no_gpg {
     if ! which gpg >/dev/null; then
 	echo "You need to install GPG to use this feature" >&2
 	exit 1
     fi
 }
 
-
-function init() {
+function init {
     __abort_on_initialized
 
     # I know it's the default... but let's be explicit!
@@ -79,20 +86,20 @@ function init() {
     chmod -R u+rwX,go-rwx .git
 
     # Add a gitweb description
-    echo "git-home-history of $HOME on $(hostname -f)" > .git/description
+    echo "git-home-history of $HOME on $HOSTNAME" > .git/description
 
     # Make sure there is a 'name' field in config... some git scripts
     # complain if not
     if test "$(getent passwd | grep $USER | cut -d: -f5)" = ""; then
-	  git config user.name "$USER"
+	git config user.name "$USER"
     fi
 
     # Check for xdg-user-dirs to provide sane defaults in .gitignore
     # http://www.freedesktop.org/wiki/Software/xdg-user-dirs
-    test -f ${XDG_CONFIG_HOME:-~/.config}/user-dirs.dirs && source ${XDG_CONFIG_HOME:-~/.config}/user-dirs.dirs
-    XDG_DOWNLOAD_DIR=$( echo ${XDG_DOWNLOAD_DIR#${HOME}} | sed 's:^/*::' )
-    XDG_VIDEOS_DIR=$( echo ${XDG_VIDEOS_DIR#${HOME}} | sed 's:^/*::' )
-    XDG_MUSIC_DIR=$( echo ${XDG_MUSIC_DIR#${HOME}} | sed 's:^/*::' )
+    test -f "${XDG_CONFIG_HOME:-~/.config}/user-dirs.dirs" && source "${XDG_CONFIG_HOME:-~/.config}/user-dirs.dirs"
+    XDG_DOWNLOAD_DIR="$( echo ${XDG_DOWNLOAD_DIR#${HOME}} | sed 's:^/*::' )"
+    XDG_VIDEOS_DIR="$( echo ${XDG_VIDEOS_DIR#${HOME}} | sed 's:^/*::' )"
+    XDG_MUSIC_DIR="$( echo ${XDG_MUSIC_DIR#${HOME}} | sed 's:^/*::' )"
 
     cat << EOF > .gitignore
 #
@@ -160,7 +167,7 @@ EOF
     echo "Please run '$SCRIPT_NAME commit' to save a first state in your history"
 }
 
-function rm_all() {
+function rm_all {
     if __has_initialized; then
 	echo "Removing all git-home-history data, this may take some time "
         # We don't remove '.git', as the user might have
@@ -175,9 +182,8 @@ function rm_all() {
 }
 
 
-function commit() {
+function commit {
     __abort_on_not_initialized
-    local what=$@
     local modifier=
 
     echo "Committing to repository, this may take a long time" >&2
@@ -190,15 +196,15 @@ function commit() {
     fi
     git-add -v . \
 	|| die "Could not complete addition of files to history store!"
-    test -n "$what" || modifier="-a"
-    git-commit $modifier -m"Committed on $( date -R )" -- $@
+    test -n "$@" || modifier="-a"
+    git-commit $modifier -m"Committed on $( date -R )" -- "$@"
     git-gc --auto || git-gc # the --auto is on newer versions
 }
 
 
-function rm_older_than() {
+function rm_older_than {
     __abort_on_not_initialized
-    local time_spec=$@
+    local time_spec="$*"
 
     if ! which git-filter-branch &>/dev/null; then
 	echo "Please install a recent version of Git" >&2
@@ -206,7 +212,7 @@ function rm_older_than() {
 	exit 1
     fi
 
-    if test $(git-rev-parse "HEAD@{$time_spec}") = "$(git-rev-parse HEAD)"; then
+    if test "$(git-rev-parse \"HEAD@{$time_spec}\")" = "$(git-rev-parse HEAD)"; then
 	local TMOUT=20
 	echo "You are about to remove *all* commits made before the very last one you made"
 	echo "Press enter or wait 20 seconds to confirm.  Abort with CRTL-C."
@@ -214,10 +220,10 @@ function rm_older_than() {
     fi
 
     # Something like that
-    git-filter-branch --parent-filter \
-	'test $(git-rev-parse "HEAD@{$time_spec}") = "$GIT_COMMIT" || cat ' \
-	HEAD
-    if test "$?" != "0"; then
+    if ! git-filter-branch --parent-filter \
+	'test "$(git-rev-parse \"HEAD@{$time_spec}\")" = "$GIT_COMMIT" || cat ' \
+	HEAD;
+    then
 	die "Please make sure you did '$SCRIPT_NAME commit' before removing old files."
     fi
 
@@ -236,32 +242,32 @@ function rm_older_than() {
 
     # Make sure we are able to tell in a commit that on this
     # date, a cleanup was made
-    local removal_date=$( date -R )
-    local witness_file=.git-home-history-last-removal
+    local removal_date="$( date -R )"
+    local witness_file=".git-home-history-last-removal"
     local msg="Removed older than '$time_spec' on $removal_date"
-    echo "$msg" > ${witness_file}
-    git add $witness_file
-    git commit -m"$msg" $witness_file
+    echo "$msg" > "${witness_file}"
+    git add "$witness_file"
+    git commit -m"$msg" "$witness_file"
 
     # Finally make sure everything is ok, and remove old stuff
     git-gc --prune
 }
 
 
-function show() {
+function show {
     __abort_on_not_initialized
 
-    local file_to_restore=$1
+    local file_to_restore="$1"
     shift
     shift # 'as'
     shift # 'of'
-    local time_spec=$@
+    local time_spec="$*"
 
     echo "Showing: $HOME/$file_to_restore" >&2
     GIT_PAGER=cat git-show "HEAD@{'$time_spec'}:$file_to_restore"
 }
 
-function archive_to() {
+function archive_to {
     __abort_on_not_initialized
     __abort_on_no_gpg
 
@@ -277,7 +283,7 @@ function archive_to() {
 }
 
 
-function extract_archive_to() {
+function extract_archive_to {
     __abort_on_no_gpg
     local archive="${1%.git}.git"
 
@@ -302,27 +308,27 @@ function extract_archive_to() {
     popd >/dev/null
 }
 
-function ls_stored_files() {
+function ls_stored_files {
     __abort_on_not_initialized
 
     if test "$#" -gt "2"; then
 	shift # as
 	shift # of
-	local time_spec="$@"
+	local time_spec="$*"
 	git-ls-tree -r --name-only "HEAD@{$time_spec}"
     else
 	git-ls-tree -r --name-only HEAD
     fi
 }
 
-function eat() {
+function eat {
     __abort_on_not_initialized
 
-    git-add -v -- $@ || die "Could not add '$@' to the history store"
-    commit $@
-    git-rm -r -f -- $@ || die "Problem removing '$@'"
-    rm -rf -- $@ # some empty dirs may remain. clean'em up
-    commit $@
+    git-add -v -- "$@" || die "Could not add '$@' to the history store"
+    commit "$@"
+    git-rm -r -f -- "$@" || die "Problem removing $@"
+    rm -rf -- "$@" # some empty dirs may remain. clean'em up
+    commit "$@"
 }
 
 case "$1" in
@@ -338,7 +344,7 @@ case "$1" in
     archive-to)
 	# output can be stdout, using '-' or a file
 	shift
-	archive_to $@
+	archive_to "$@"
 	;;
     extract-archive-to)
 	# output can only be a file
@@ -357,7 +363,7 @@ case "$1" in
 	    echo "e.g. $SCRIPT_NAME show 'myfile.txt' as of 2 days ago" >&2
 	    exit 1
 	fi
-	show $@
+	show "$@"
 	;;
     commit)
 	commit
@@ -374,7 +380,7 @@ case "$1" in
 	    echo "e.g. $SCRIPT_NAME eat 'myfile.txt'" >&2
 	    exit 1
 	fi
-	eat $@
+	eat "$@"
 	;;
     rm-older-than)
 	shift
@@ -383,7 +389,7 @@ case "$1" in
 	    echo "e.g. '1 year ago' or '1979-02-26 18:30:00'" >&2
 	    exit 1
 	fi
-	rm_older_than $@
+	rm_older_than "$@"
 	;;
     rm-all)
 	rm_all
@@ -399,7 +405,7 @@ case "$1" in
 	;;
     ls-stored-files)
 	shift
-	ls_stored_files $@
+	ls_stored_files "$@"
 	;;
     --help|-h|help)
 	manfile="${SCRIPT_NAME}.1"
