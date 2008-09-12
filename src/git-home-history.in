@@ -262,7 +262,7 @@ function show {
     local time_spec="$*"
 
     echo "Showing: $HOME/$file_to_restore" >&2
-    GIT_PAGER=cat git show "HEAD@{'$time_spec'}:$file_to_restore"
+    GIT_PAGER=cat git show "HEAD@{$time_spec}:$file_to_restore"
 }
 
 function archive_to {
