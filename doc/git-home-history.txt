@@ -322,12 +322,6 @@ repository.
 DOWNLOADS AND UPDATES
 ---------------------
 
-You can grab a copy of the project using Git:
-
-------------
-$ git clone http://jean-francois.richard.name/ghh.git
-------------
-
 You can visit the website at http://jean-francois.richard.name/ghh/[]
 to stay updated on the development.
 

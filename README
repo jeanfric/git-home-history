@@ -1,3 +1,14 @@
+Important
+=========
+
+This project is not actively maintained since early 2008.  It has thus *NOT*
+been tested on modern distributions and recent Git versions.  It might work,
+it might not work.
+
+You might be interested in a fork of it available at 
+http://eigenclass.org/hiki/gibak-backup-system-introduction, which might
+work better for you.
+
 About
 =====
 
