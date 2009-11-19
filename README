@@ -1,3 +1,16 @@
+About
+=====
+
+git-home-history is a tool that simplifies keeping track of changes
+you make in your home directory. It is based on the excellent Git
+toolkit. git-home-history stores changes you make to your files as
+time goes by and can thus provides an easy way to go back to earlier
+versions and see changes you made. You can also use it to easily
+create backup archives that contain the whole history of your home.
+
+You can read more about this project at
+http://jean-francois.richard.name/ghh.
+
 Normal installation
 ===================
 
