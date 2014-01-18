@@ -1,4 +1,4 @@
-AC_INIT(ghh, 0.1, jean-francois@richard.name)
+AC_INIT(ghh, 0.1)
 AC_CONFIG_SRCDIR(lib/__init__.py)
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
