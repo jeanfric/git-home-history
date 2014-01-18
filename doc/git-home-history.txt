@@ -319,12 +319,6 @@ If you have Git projects in your home, their contents will not be
 stored. Git does not add any subdirectory that contains another Git
 repository.
 
-DOWNLOADS AND UPDATES
----------------------
-
-You can visit the website at http://jean-francois.richard.name/ghh/[]
-to stay updated on the development.
-
 DISCUSSION
 ----------
 
@@ -336,4 +330,4 @@ the mailing-list.
 AUTHORS
 -------
 
-Jean-Francois Richard <mailto:jean-francois@richard.name[]>
+Jean-Francois Richard
