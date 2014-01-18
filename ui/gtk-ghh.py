@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2007 Jean-Francois Richard <jean-francois@richard.name>
+# Copyright (c) 2007 Jean-Francois Richard
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
